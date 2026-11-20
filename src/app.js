@@ -1,0 +1,361 @@
+import { expandContent } from "./components/expand.js";
+import { CALL_STAGES, dispatchPanel, roleOf } from "./components/dispatch.js";
+import { overview } from "./components/grid.js";
+import { sectionsView } from "./components/sections.js";
+import { loginScreen } from "./components/login.js";
+import { playerSheet } from "./components/playersheet.js";
+import { rail } from "./components/rail.js";
+import { accountSheet, helpSheet, thresholdSheet } from "./components/sheets.js";
+import { tableDetail } from "./components/tabledetail.js";
+import { topBar } from "./components/topbar.js";
+import { clear, h } from "./lib/dom.js";
+import { annotate, wireTips } from "./lib/helptips.js";
+import { patchLive } from "./lib/live.js";
+import { FILL_STAGES, findTable, pageOf } from "./lib/selectors.js";
+import { money } from "./lib/format.js";
+import { WALLPAPERS, wallpaper } from "./assets.js";
+import { createStore } from "./store.js";
+
+const HINTS = {
+  login: "Try: tap the card reader, or key in any ID of four digits or more.",
+  section:
+    "Try: an Action's button on the table image · Supervisor requested: On my way, then Close with a reason · Inventory, View Table, History, and the arrow for everything else (Fill / Credit, Dispatch, Limits, Alerts) · Dispatch in the top bar calls Security, Surveillance, Floor Ops or Public Area · the avatar opens Sections and tables · the turn icon for table figures · 4 / 9 / 12 per page · the red dot on a page number means an Action is waiting there · X on any Action or Alert to close it.",
+  sections: "Try: tick two or more section cards, then View together · tap a card to light it up on the map, then Open or Edit tables · the turn icon flips a card · Create new section · Edit tables on the overview changes a section without coming here.",
+  table: "Try: Bets or Session on a seat card · the expand icon opens the full seat card · RN on an anonymous player's record · tap a game to see its limits and positions · Sessions scrolls sideways · Scan is on Inventory · the arrows beside the table name step through the section.",
+};
+
+const root = document.getElementById("app");
+const store = createStore((state, action) => render(action));
+const { dispatch, getState } = store;
+
+/* ---------------------------------------------------------------- behavior */
+
+function runScan(tableId) {
+  const s = getState();
+  if (s.scanning[tableId]) return;
+  dispatch({ type: "scan-start", tableId });
+  window.setTimeout(() => {
+    dispatch({ type: "scan-done", tableId });
+    const t = findTable(getState().tables, tableId);
+    dispatch({ type: "toast", message: `${t.name} scanned. ${t.variance ? "Still 1,000 short." : "Tray balanced."}` });
+  }, 1400);
+}
+
+/** Clear an item. `receipt` adds a line to Activity so the history is kept. */
+const resolve = (alertId, message, receipt) => dispatch({ type: "resolve", alertId, message, receipt });
+
+/** Open a tile, turning to its page first if it is on another page. */
+function openTile(tableId, view, extra = {}) {
+  const s = getState();
+  dispatch({ type: "expand", tableId, view, page: s.level === "section" ? pageOf(s.tables, tableId, s.perPage) : s.page, ...extra });
+}
+
+/**
+ * A fill is one item that moves through its stages. In the product these
+ * steps come from the cage and the table; here they are played out on timers
+ * so the whole life of a fill can be seen in a minute.
+ */
+const fillTimers = {};
+function runFill(tableId) {
+  const f = getState().fills[tableId];
+  if (!f) return;
+  const t = findTable(getState().tables, tableId);
+  const labels = FILL_STAGES[f.by];
+  (fillTimers[tableId] || []).forEach(window.clearTimeout);
+  fillTimers[tableId] = [];
+  let delay = 0;
+  for (let stage = f.stage + 1; stage < labels.length; stage += 1) {
+    delay += 4000;
+    fillTimers[tableId].push(
+      window.setTimeout(() => {
+        dispatch({ type: "fill-stage", tableId, stage });
+        dispatch({ type: "receipt", tableId, title: `${f.mode === "fill" ? "Fill" : "Credit"} ${labels[stage].toLowerCase()}`, detail: `${money(f.amount)} · ${t.name}` });
+      }, delay)
+    );
+  }
+  // Once processed, the tracker leaves the tile; the receipts stay in Activity.
+  fillTimers[tableId].push(window.setTimeout(() => dispatch({ type: "fill-done", tableId }), delay + 3500));
+}
+
+function authorizeFill(alertId, tableId) {
+  const f = getState().fills[tableId];
+  dispatch({ type: "fill-stage", tableId, stage: 1 });
+  resolve(alertId, `Fill authorized. ${money(f ? f.amount : 0)} on its way.`, { title: "Fill authorized", detail: money(f ? f.amount : 0) });
+  runFill(tableId);
+}
+
+function sendFill(tableId, mode, amount) {
+  dispatch({ type: "fill-start", tableId, mode, amount, by: "you" });
+  dispatch({ type: "collapse" });
+  dispatch({ type: "toast", message: `${mode === "fill" ? "Fill" : "Credit"} of ${money(amount)} sent to the cage.` });
+  runFill(tableId);
+}
+
+/** One place decides what an item's button does, wherever it was pressed. */
+function onAlert(alert) {
+  // Supervisor Requested: On my way, then Close. No reason is asked for.
+  if (alert.enroute) {
+    resolve(alert.id, `${alert.title} closed.`, { title: `${alert.title} closed`, detail: "by Ana Lopes" });
+    return;
+  }
+  const action = alert.actions[0];
+  switch (action.intent) {
+    case "on-my-way":
+      dispatch({ type: "alert-patch", alertId: alert.id, patch: { enroute: true, enrouteAt: alert.ageSeconds } });
+      dispatch({ type: "toast", message: "The dealer display now shows Supervisor coming." });
+      break;
+    case "acknowledge":
+      resolve(alert.id, `${alert.title}: done.`, action.receipt ? { title: action.receipt } : null);
+      break;
+    case "authorize-fill":
+      openTile(alert.tableId, "authorize", { alertId: alert.id });
+      break;
+    case "adjust":
+      openTile(alert.tableId, "adjust", { alertId: alert.id });
+      break;
+    case "verify-jackpot":
+      openTile(alert.tableId, "jackpot", { alertId: alert.id });
+      break;
+    case "review-hand":
+      openTile(alert.tableId, "games", { alertId: alert.id });
+      break;
+    case "open-player": {
+      const person = getState().players.find((p) => p.tableId === alert.tableId && !p.closed && alert.subject && p.seat === alert.subject.seat);
+      if (person) dispatch({ type: "open-player", playerId: person.id });
+      else dispatch({ type: "go-table", tableId: alert.tableId, tab: "players" });
+      break;
+    }
+    default:
+      dispatch({ type: "go-table", tableId: alert.tableId, tab: "players" });
+  }
+}
+
+/**
+ * A dispatch call moves through its stages. In the product the department's
+ * own system sends these back; here they play out on timers.
+ */
+let callSeq = 0;
+const callTimers = {};
+function startCall(c) {
+  callSeq += 1;
+  const id = `call${callSeq}`;
+  const r = roleOf(c.role);
+  dispatch({ type: "call-start", call: { ...c, id, stage: 0 }, message: `${r.label} called${c.where ? ` to ${c.where}` : ""}.` });
+  dispatch({ type: "receipt", tableId: c.tableId, title: `${r.label} called`, detail: `${c.where} · ${c.reason}` });
+  callTimers[id] = [];
+  [1, 2, 3].forEach((stage, i) =>
+    callTimers[id].push(
+      window.setTimeout(() => {
+        dispatch({ type: "call-stage", callId: id, stage });
+        if (stage > 1) dispatch({ type: "receipt", tableId: c.tableId, title: `${r.label} ${CALL_STAGES[stage].toLowerCase()}`, detail: c.where });
+      }, 5000 * (i + 1))
+    )
+  );
+  // Arrived calls leave the list after a moment; the receipts stay in Activity.
+  callTimers[id].push(window.setTimeout(() => dispatch({ type: "call-done", callId: id }), 5000 * 3 + 6000));
+}
+function closeCall(id) {
+  (callTimers[id] || []).forEach(window.clearTimeout);
+  const c = getState().calls.find((x) => x.id === id);
+  dispatch({ type: "call-done", callId: id });
+  if (c) dispatch({ type: "receipt", tableId: c.tableId, title: `${roleOf(c.role).label} call closed`, detail: c.where });
+}
+
+const handlers = {
+  onScan: runScan,
+  onAlert,
+  onResolve: resolve,
+  onAuthorizeFill: authorizeFill,
+  onSendFill: sendFill,
+  onAdjust: (id) => openTile(id, "adjust", { alertId: "b1" }),
+  onOrderFill: (id) => openTile(id, "fill"),
+  onCall: startCall,
+  onCloseCall: closeCall,
+};
+
+let closeTimer;
+function closePlayer() {
+  const s = getState();
+  if (!s.playerId || s.playerClosing) return;
+  dispatch({ type: "close-player-start" });
+  window.clearTimeout(closeTimer);
+  closeTimer = window.setTimeout(() => dispatch({ type: "close-player" }), 200);
+}
+
+/* -------------------------------------------------------------------- view */
+
+/** Whether the side panel was open on the last render, and what it showed. */
+const lastPanel = { open: false, node: null };
+const lastDispatch = { open: false, node: null };
+
+function device(state) {
+  const paper = wallpaper(state.wallpaper);
+  const ambient = h(
+    "div.ambient",
+    { "aria-hidden": "true" },
+    h("div.ambient__photo", { style: { backgroundImage: paper.image ? `url(${paper.image})` : "none" } }),
+    h("div.ambient__veil"),
+    h("span", { style: { left: "-200px", top: "-320px", width: "820px", height: "620px", background: "radial-gradient(circle, rgba(168,30,51,.18), rgba(168,30,51,0) 68%)" } }),
+    h("span", { style: { right: "-180px", bottom: "-220px", width: "760px", height: "620px", background: "radial-gradient(circle, rgba(36,86,138,.2), rgba(36,86,138,0) 70%)" } })
+  );
+
+  if (!state.signedIn) {
+    return h("div.ltg", { data: { theme: state.theme, wallpaper: paper.id } }, ambient, loginScreen(state, dispatch));
+  }
+
+  const content = state.level === "table" ? tableDetail(state, dispatch, handlers) : overview(state, dispatch, handlers);
+  // All sections takes the whole width: it is a planning screen, not a shift view.
+  const sectionsScreen = state.level === "sections";
+
+  // A tile opened as a side panel, or anything opened from the full table,
+  // shows in the right-edge panel over the rail.
+  const panelOpen = !!state.expand && (state.expandStyle === "panel" || state.level === "table");
+  const dispatchOpen = !!state.dispatchOpen;
+  // The side panel slides in when it opens and out when it closes. Every
+  // render rebuilds the tree, so the motion is keyed to the change in state,
+  // not to the element: entering plays once, and a closing panel keeps a
+  // still copy of what it showed while it slides away.
+  const entering = panelOpen && !lastPanel.open;
+  const leaving = !panelOpen && lastPanel.open && lastPanel.node;
+  const panel = h(
+    "aside.flyout.flyout--xp",
+    { data: { open: panelOpen, enter: entering, leave: !!leaving }, "aria-hidden": String(!panelOpen) },
+    panelOpen ? expandContent(state, dispatch, handlers) : leaving ? [...lastPanel.node.cloneNode(true).childNodes] : null
+  );
+  lastPanel.open = panelOpen;
+  lastPanel.node = panelOpen ? panel : null;
+
+  // Dispatch slides in from the right the same way.
+  const dEnter = dispatchOpen && !lastDispatch.open;
+  const dLeave = !dispatchOpen && lastDispatch.open && lastDispatch.node;
+  const dPanel = h(
+    "aside.flyout.flyout--xp.flyout--dispatch",
+    { data: { open: dispatchOpen, enter: dEnter, leave: !!dLeave }, "aria-hidden": String(!dispatchOpen) },
+    dispatchOpen ? dispatchPanel(state, dispatch, handlers) : dLeave ? [...lastDispatch.node.cloneNode(true).childNodes] : null
+  );
+  lastDispatch.open = dispatchOpen;
+  lastDispatch.node = dispatchOpen ? dPanel : null;
+  const anyOpen = panelOpen || dispatchOpen;
+
+  return h(
+    "div.ltg",
+    { data: { theme: state.theme, wallpaper: paper.id, level: state.level, look: state.look, bg: state.bg } },
+    ambient,
+    topBar(state, dispatch),
+    h(
+      "div.panes",
+      {},
+      sectionsScreen
+        ? h("section.pane.pane--content.pane--full", {}, sectionsView(state, dispatch))
+        : [
+            h("section.pane.pane--content.pane--tables", {}, content),
+            h("section.pane.pane--alerts.pane--rail", { "aria-label": "Actions, alerts and players" }, rail(state, dispatch, handlers)),
+          ]
+    ),
+    h("button.scrim", {
+      // Light for an opened tile, so the grid stays readable beside it.
+      class: state.level === "section" ? "scrim scrim--light" : "scrim",
+      data: { open: anyOpen, enter: (entering && !dispatchOpen) || (dEnter && !panelOpen), leave: (!!leaving && !dispatchOpen) || (!!dLeave && !panelOpen) },
+      "aria-label": "Close panel",
+      on: { click: () => { dispatch({ type: "collapse" }); dispatch({ type: "dispatch-close" }); } },
+    }),
+    panel,
+    dPanel,
+    state.playerId ? playerSheet(state, dispatch, closePlayer) : null,
+    state.sheet === "help" ? helpSheet(state, dispatch) : null,
+    state.sheet === "account" ? accountSheet(state, dispatch) : null,
+    state.sheet === "thresholds" ? thresholdSheet(state, dispatch) : null,
+    h("div.toast", { data: { open: !!state.toast }, role: "status", text: state.toast || "" })
+  );
+}
+
+function page(state) {
+  const hint = HINTS[state.signedIn ? state.level : "login"];
+  const [lead, ...rest] = hint.split(":");
+
+  const group = (label, items, value, action) =>
+    h(
+      "div.area-switch",
+      { role: "group", "aria-label": label },
+      h("span.area-switch__label", { text: label }),
+      items.map(([v, text]) => h("button", { text, "aria-pressed": String(value === v), on: { click: () => dispatch({ ...action, [Object.keys(action)[1]]: v }) } }))
+    );
+
+  return h(
+    "div.page",
+    {},
+    h(
+      "div.page-bar",
+      {},
+      h("span.page-title", { text: "Mobile Manager · Tables" }),
+      h("span.page-sub", { html: "Interaction prototype. Designed for a 10&Prime; tablet in landscape; scaled to fit this window." }),
+      state.signedIn ? h("button.chip", { text: "Sign out", on: { click: () => dispatch({ type: "sign-out" }) } }) : null,
+      h(
+        "button.chip.chip--tips",
+        { "aria-pressed": String(state.helpTips), on: { click: () => dispatch({ type: "help-tips" }) } },
+        h("span.gloss__i", { text: "i", "aria-hidden": "true" }),
+        "Jargon tips"
+      )
+    ),
+    h("div.stage", { id: "stage" }, device(state)),
+    h("p.page-hint", {}, h("b", { text: lead + ":" }), rest.join(":"))
+  );
+}
+
+/* --------------------------------------------------------------- lifecycle */
+
+function fit() {
+  const stage = document.getElementById("stage");
+  if (!stage) return;
+  const scale = Math.max(0.24, Math.min(1, (window.innerWidth - 32) / 1280, (window.innerHeight - 150) / 800));
+  stage.style.transform = `scale(${scale})`;
+  stage.style.width = `${1280 * scale}px`;
+  stage.style.height = `${800 * scale}px`;
+}
+
+let toastTimer;
+/** The timer starts when a new message appears, not on every render, so
+    tapping around never keeps an old message on screen. */
+let toastShown = null;
+function scheduleToastClear(state) {
+  if (!state.toast) { toastShown = null; return; }
+  if (state.toast === toastShown) return;
+  toastShown = state.toast;
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => dispatch({ type: "toast", message: null }), 2600);
+}
+
+function render(action) {
+  const state = getState();
+  if (action && action.type === "tick" && patchLive(root, state)) return;
+  if (action && action.type === "toast") {
+    const el = root.querySelector(".toast");
+    if (el) {
+      el.textContent = state.toast || "";
+      el.dataset.open = String(!!state.toast);
+      scheduleToastClear(state);
+      return;
+    }
+  }
+
+  document.body.dataset.pageTheme = state.theme;
+  clear(root).appendChild(page(state));
+  fit();
+
+  if (state.helpTips) {
+    const dev = root.querySelector(".ltg");
+    if (dev) {
+      annotate(dev);
+      wireTips(dev);
+    }
+  }
+  scheduleToastClear(state);
+}
+
+window.addEventListener("resize", fit);
+window.setInterval(() => {
+  const s = getState();
+  if (s.signedIn && !s.expand && !s.dispatchOpen && !s.sheet && !s.playerId && !s.playerClosing && !Object.keys(s.scanning).length) dispatch({ type: "tick" });
+}, 1000);
+
+render();

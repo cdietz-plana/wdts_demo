@@ -1,0 +1,1820 @@
+/* =============================================================================
+   Components. Every color here comes from a token in tokens.css.
+   ========================================================================== */
+
+.ltg {
+  position: relative;
+  width: 1280px;
+  height: 800px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  transition: background var(--dur-theme) ease, color var(--dur-theme) ease;
+}
+
+.ltg[data-theme="simple"] {
+  border: 1px solid var(--line-strong);
+}
+
+/* The room behind the glass. Every theme decides how much of it shows, and
+   how, through the --ambient-* tokens. Light hides it entirely; Square keeps a
+   bleached trace of it; Dark and Glass run it properly. */
+.ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--ambient-opacity);
+  transition: opacity 400ms ease;
+}
+.ambient span { position: absolute; border-radius: 50%; filter: blur(30px); display: block; }
+
+/* The room. Inset negatively and scaled so the blur never shows an edge. */
+.ambient__photo {
+  position: absolute; inset: -10%;
+  background-size: cover; background-position: 50% 42%;
+  filter: var(--ambient-filter);
+  transform: scale(1.04);
+}
+/* Crimson at the top left where the glass ceiling is, black everywhere else.
+   Deliberately faint. Color in this product has exactly one job, which is
+   "needs attention", and a crimson wash across half the screen takes that job
+   away from the alerts. The warmth should be felt, not seen.
+
+   It is also kept to the top edge, behind the bar, where nothing carries a
+   severity. An earlier version put it over the top-left corner, which is
+   exactly where the first pod card sits: Pod 1 looked critical because of the
+   wallpaper rather than because it was. */
+.ambient__veil {
+  position: absolute; inset: 0;
+  background: var(--ambient-veil);
+}
+
+/* --- type helpers --------------------------------------------------------- */
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.display { font-family: var(--font-display); }
+.micro {
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+/* --- surfaces ------------------------------------------------------------- */
+/* Card-shaped buttons reset the browser's button color here rather than
+   inline, so a theme rule can still reach them. An inline color cannot be
+   overridden by a stylesheet without !important, and Felt needs to flip the
+   ink inside its cards. */
+button.card { font: inherit; color: inherit; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: background var(--dur-theme), border-color var(--dur-theme), box-shadow var(--dur-theme);
+}
+.card--raised { background: var(--surface-raised); border-color: var(--line-strong); }
+.card--critical { border-color: var(--critical); box-shadow: 0 0 0 4px var(--critical-wash), var(--shadow-card); }
+
+/* --- top bar -------------------------------------------------------------- */
+.bar {
+  position: relative;
+  z-index: 6;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 12px;
+  flex-shrink: 0;
+  background: var(--bar-bg);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+
+.mark {
+  width: 38px; height: 38px; border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: #fff;
+}
+.ltg[data-theme="dark"] .mark,
+.ltg[data-theme="glass"] .mark { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); }
+
+.icon-btn {
+  width: var(--tap-min); height: var(--tap-min); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border: 1px solid var(--line); background: var(--surface-soft);
+  color: var(--ink); cursor: pointer;
+}
+
+/* Stacked, not inline. At the larger label size three side-by-side clocks
+   plus the mode control no longer fit across 1280, and stacking each label
+   over its value buys back about 160px without shrinking a single word. */
+.clock {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  gap: 1px; height: 46px; padding: 0 12px; flex-shrink: 0; white-space: nowrap;
+  border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface-soft);
+}
+.clock b { font-family: var(--font-display); font-weight: 600; font-size: var(--t-title); line-height: 1.1; }
+
+.crumb-link { font-size: var(--t-action); color: var(--ink-3); cursor: pointer; background: none; border: 0; font: inherit; padding: 0; }
+.crumb-current { font-family: var(--font-display); font-size: var(--t-title); font-weight: 600; }
+
+/* --- segmented control ---------------------------------------------------- */
+.segmented {
+  display: flex; border-radius: 12px; padding: 3px; gap: 2px;
+  background: var(--seg-bg); border: 1px solid var(--seg-edge);
+}
+.segmented button {
+  border: 0; background: transparent; font: inherit; font-size: var(--t-action); font-weight: 500;
+  height: var(--tap-chip); display: flex; align-items: center; gap: 7px;
+  padding: 0 16px; border-radius: 9px; color: var(--ink-2); cursor: pointer;
+}
+.segmented button[aria-pressed="true"] {
+  background: var(--seg-on); color: var(--ink); font-weight: 600; box-shadow: var(--shadow-raised);
+}
+.segmented--fill button { flex: 1; justify-content: center; padding: 0; }
+
+.count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 19px; height: 19px; padding: 0 5px; border-radius: var(--r-pill);
+  background: var(--critical); color: var(--on-accent); font-size: var(--t-micro); font-weight: 700;
+}
+
+/* --- two panes. Pods stay left, alerts stay right. Only the width changes. -- */
+.panes { position: relative; flex: 1; min-height: 0; }
+.pane {
+  position: absolute; top: 0; bottom: 0; overflow: hidden;
+  transition: left var(--dur-pane) var(--ease-pane), width var(--dur-pane) var(--ease-pane);
+}
+.pane--content { left: 0; padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+.pane--content[data-narrow="true"] { padding: 14px 10px; }
+.pane--alerts {
+  display: flex; flex-direction: column;
+  border-left: 1px solid var(--line);
+  background: var(--rail-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: left var(--dur-pane) var(--ease-pane), width var(--dur-pane) var(--ease-pane),
+    background var(--dur-theme), border-color var(--dur-theme);
+}
+
+/* When the tree carries the weight it becomes the main canvas, not a rail. */
+.pane--alerts[data-wide="true"] {
+  background: var(--rail-bg-wide);
+  backdrop-filter: var(--rail-blur-wide);
+  -webkit-backdrop-filter: var(--rail-blur-wide);
+}
+
+/* --- floor plan ----------------------------------------------------------- */
+/* Six equal cards, three across. Equal cells are the point: no pod outranks
+   another, so nothing in the geometry is allowed to say otherwise. */
+.plan {
+  flex: 1; min-height: 0; border-radius: var(--r-lg); overflow: visible;
+  background: var(--plan-bg); border: 1px solid var(--plan-border);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr; gap: 14px; padding: var(--plan-pad);
+}
+
+/* Adaptive density. Review feedback: with one pod in your area the screen
+   should be that pod, not a sixth of a grid with five empty cells. The cell
+   count follows the area, and the cards print more the fewer there are. */
+.plan[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
+.plan[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; }
+.plan[data-count="3"], .plan[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Where a room shows through, the grid floats on it instead of sitting in a
+   tray. The tray was a third sheet of glass between the photograph and the
+   cards, and three sheets is enough to hide anything. See --plan-bg. */
+
+/* In dark the rail is a column of glass rows on the room, not a sheet of glass
+   with rows drawn on it. It is the largest uninterrupted area on the screen,
+   so it is where the room gets to be a room. */
+/* Not fully transparent: the rows carry small faint text, and small faint text
+   over a photograph is where legibility goes to die. A thin sheet of the same
+   neutralizing glass keeps the room visible and gives the type a floor. */
+
+
+.ltg[data-theme="dark"] .pane--content,
+.ltg[data-theme="glass"] .pane--content { padding: 16px 18px; }
+/* When the pods collapse to a rail they carry small type too, so the rail gets
+   the same thin floor the alert rail has. The room still reads through it. */
+.pane--content[data-narrow="true"] {
+  background: var(--narrow-rail-bg);
+  backdrop-filter: var(--floor-blur, none);
+  -webkit-backdrop-filter: var(--floor-blur, none);
+}
+
+.pod { display: flex; min-width: 0; min-height: 0; cursor: pointer; border: 0; padding: 0; background: none; text-align: left; font: inherit; color: inherit; transition: transform 180ms ease; }
+.pod:active { transform: scale(0.978); }
+.pod__card { flex: 1; min-width: 0; padding: 12px 13px; display: flex; flex-direction: column; }
+/* The drawing takes the slack, so a fourteen-seat table growing a second row
+   of dots does not change the card's height or shunt the footer. */
+.pod__plan { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 10px 0; }
+/* With one or two pods the card has far more height than the drawing needs,
+   so the drawing spreads into it rather than floating in the middle of an
+   empty rectangle. */
+.plan[data-count="1"] .pod__plan { justify-content: space-evenly; gap: 10px; padding: 18px 0; }
+.plan[data-count="2"] .pod__plan { justify-content: space-evenly; gap: 14px; }
+.pod__table { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.pod__name { font-size: var(--t-micro); letter-spacing: 0.04em; color: var(--ink-3); }
+/* Two lines, not an ellipsis. At the larger size most of these summaries no
+   longer fit on one line, and "manual rating ove..." tells a supervisor less
+   than nothing. The card has the vertical room; the drawing gives it up. */
+.pod__foot {
+  border-top: 1px solid var(--line); padding-top: 9px; font-size: var(--t-detail); line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* A seat dot is a person. Color is the value band, size follows it, and the
+   ring means the player is ahead of the house. See lib/playervalue.js. */
+.seat { border-radius: 50%; background: var(--seat); flex-shrink: 0; display: block; }
+.seat--empty { background: none; border: 1.5px solid var(--seat); }
+.seat--pick { border: 0; padding: 0; cursor: pointer; appearance: none; }
+.seat--pick:hover { filter: brightness(1.14); }
+.seat--pick:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* --- playing cards ---------------------------------------------------------
+   The only white rectangles in the product, which is what makes them read as
+   cards rather than as chrome. */
+.pcard {
+  background: #fcfcfa;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1px; flex-shrink: 0;
+  font-family: var(--font-display);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.22);
+}
+.pcard--slot {
+  background: none; border: 1.5px dashed rgba(255, 255, 255, 0.34); box-shadow: none;
+}
+/* Ink on the felt. The felt is dark in every theme, so these do not follow
+   the theme's ink tokens. */
+.felt { --on-felt: #ffffff; --on-felt-2: rgba(255, 255, 255, 0.92); }
+
+.felt { border-radius: 22px 22px 5px 5px; background: var(--felt); border: 1px solid var(--felt-edge); transition: all var(--dur-theme); }
+.felt[data-role="PT"] { background: var(--felt-primary); border-color: var(--felt-primary-edge); }
+.felt[data-alert="true"] { border-color: var(--critical); background: var(--critical-wash); }
+.ltg[data-theme="dark"] .felt[data-alert="true"] { box-shadow: 0 0 14px rgba(255, 92, 114, 0.4); }
+.felt[data-offline="true"] { opacity: 0.5; border-style: dashed; }
+.felt--chip { border-radius: 7px 7px 2px 2px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px;
+  border-radius: var(--r-pill); font-size: var(--t-detail); font-weight: 600; border: 1px solid transparent;
+  white-space: nowrap; flex-shrink: 0; line-height: 1;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ltg[data-theme="dark"] .dot[data-severity="critical"] { box-shadow: 0 0 8px rgba(255, 92, 114, 0.8); }
+
+/* --- rows, chips, buttons -------------------------------------------------- */
+.row {
+  display: flex; align-items: center; gap: 10px; border-radius: 12px; padding: 0 12px;
+  min-height: var(--tap-row); cursor: pointer; border: 1px solid transparent;
+  background: none; font: inherit; color: inherit; text-align: left; width: 100%;
+}
+.row--nav { min-height: 48px; }
+.row--table { min-height: 50px; padding-left: 40px; }
+.row--person { min-height: 46px; padding-left: 66px; background: var(--surface-soft); }
+
+.alert-card {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+  border-radius: 12px; cursor: pointer; width: 100%; text-align: left; font: inherit; color: inherit;
+  background: var(--surface); border: 1px solid var(--line);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+}
+.alert-card__bar { width: 4px; height: 38px; border-radius: 2px; flex-shrink: 0; }
+
+.chip {
+  height: var(--tap-chip); display: inline-flex; align-items: center; gap: 7px; padding: 0 14px;
+  border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink-2); font: inherit; font-size: var(--t-body); cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); font-weight: 600; }
+
+.tag {
+  height: 25px; display: inline-flex; align-items: center; padding: 0 9px;
+  border-radius: 6px; font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.04em;
+  white-space: nowrap; flex-shrink: 0; line-height: 1;
+}
+
+.btn {
+  height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 16px; border-radius: var(--r-md); font-size: var(--t-body); font-weight: 600;
+  cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: var(--on-ink);
+  font-family: inherit; white-space: nowrap;
+}
+.btn--ghost { background: var(--surface); border-color: var(--line-strong); color: var(--ink); font-weight: 500; }
+.btn--big { height: var(--tap-min); }
+.btn:disabled { opacity: 0.42; cursor: default; }
+
+/* --- task tabs ------------------------------------------------------------- */
+.tabs { display: flex; border-radius: 13px; padding: 4px; gap: 3px; align-self: flex-start; background: var(--seg-bg); border: 1px solid var(--seg-edge); }
+.tabs button { border: 0; background: transparent; font: inherit; font-size: var(--t-action); font-weight: 500; height: var(--tap-min); padding: 0 20px; border-radius: var(--r-md); color: var(--ink-2); cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--seg-on); color: var(--ink); font-weight: 600; box-shadow: var(--shadow-raised); }
+
+/* --- flyout ---------------------------------------------------------------- */
+.scrim {
+  position: absolute; inset: 0; z-index: 8; background: var(--scrim);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none; transition: opacity var(--dur-theme); border: 0;
+}
+.scrim[data-open="true"] { opacity: 1; pointer-events: auto; }
+
+
+.flyout {
+  position: absolute; z-index: 9; right: 0; top: 62px; bottom: 0; width: 424px;
+  border-radius: var(--r-xl) 0 0 var(--r-xl); padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 11px;
+  transform: translateX(102%); transition: transform var(--dur-fly) cubic-bezier(0.62, 0, 0.2, 1);
+  border: 1px solid var(--line); border-right: 0;
+  background: var(--flyout-bg);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--flyout-shadow);
+}
+.flyout[data-open="true"] { transform: translateX(0); }
+
+.step-done {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md);
+  flex-shrink: 0; background: var(--ok-wash); border: 1px solid var(--ok-edge);
+  cursor: pointer; width: 100%; text-align: left; font: inherit; color: inherit;
+}
+
+
+.option {
+  padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line); cursor: pointer;
+  font: inherit; font-size: var(--t-action); background: var(--surface); color: var(--ink); text-align: left; width: 100%;
+}
+.option[aria-pressed="true"] {
+  border-color: var(--ink); background: var(--surface-sunken); font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+/* Five choices and a position picker in one step. The rule is that no step
+   scrolls, so the options get tighter rather than the step getting taller. */
+.option--tight { padding: 9px 12px; font-size: var(--t-body); border-radius: var(--r-md); }
+
+.keypad { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-content: start; min-height: 0; }
+.key {
+  height: var(--tap-key); display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-md); font-size: var(--t-metric); font-weight: 500; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface-soft); color: var(--ink); font-family: inherit;
+}
+
+/* --- scan ------------------------------------------------------------------ */
+.scan-dial {
+  width: 124px; height: 124px; border-radius: 50%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; cursor: pointer;
+  border: 1px solid var(--line-strong); color: var(--ink); font: inherit;
+  background: var(--dial-bg);
+  box-shadow: var(--dial-shadow);
+}
+@keyframes ltg-spin { to { transform: rotate(360deg); } }
+.scan-dial[data-scanning="true"] { animation: ltg-spin 1s linear infinite; }
+
+.den { display: flex; align-items: center; justify-content: space-between; height: 34px; padding: 0 12px; border-radius: var(--r-sm); font-size: var(--t-detail); background: var(--surface-soft); }
+
+/* --- toast ----------------------------------------------------------------- */
+.toast {
+  position: absolute; z-index: 72; left: 50%; bottom: 22px;
+  transform: translate(-50%, 24px); opacity: 0; transition: all var(--dur-theme);
+  padding: 12px 20px; border-radius: 12px; font-size: var(--t-action); font-weight: 500; pointer-events: none;
+  background: var(--ink); color: var(--on-ink);
+}
+.toast[data-open="true"] { opacity: 1; transform: translate(-50%, 0); }
+
+@keyframes ltg-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.fade-in { animation: ltg-fade-in 280ms ease; }
+
+/* --- sign in ---------------------------------------------------------------
+   The logo always sits on a light plate. WDTS's wordmark is black type, so on
+   a dark ground it needs its own surface rather than an inversion, which would
+   throw the crimson out of brand. */
+.login {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 24px;
+  min-height: 0;
+}
+
+.login__plate {
+  background: #fff;
+  border-radius: var(--r-md);
+  padding: 16px 26px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-card);
+}
+.ltg[data-theme="simple"] .login__plate,
+.ltg[data-theme="square"] .login__plate { box-shadow: none; padding: 0; }
+
+.login__logo { display: block; width: 292px; height: auto; }
+
+.login__card {
+  width: 420px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.login__product { font-size: var(--t-metric); font-weight: 700; }
+.login__sub { font-size: var(--t-body); color: var(--ink-3); margin-top: -10px; }
+
+.login__tap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--brand);
+  background: var(--critical-wash);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 84px;
+}
+.login__tapicon {
+  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--brand); color: #fff;
+}
+.login__taptitle { display: block; font-size: var(--t-title); font-weight: 600; }
+.login__taphint { display: block; font-size: var(--t-detail); color: var(--ink-2); margin-top: 2px; }
+
+.login__or {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--t-detail);
+  color: var(--ink-3);
+}
+.login__or span:first-child,
+.login__or span:last-child { height: 1px; background: var(--line); }
+
+.login__field {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 54px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+}
+.login__value { font-size: var(--t-body); margin-top: 1px; }
+
+.login__pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.login__go {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+  font-size: var(--t-action);
+  font-weight: 600;
+}
+.login__go:disabled { opacity: 0.42; cursor: default; }
+
+.login__note { font-size: var(--t-micro); color: var(--ink-3); text-align: center; }
+
+/* The brand icon needs a light plate in both themes for the same reason. */
+.mark img { display: block; }
+
+/* --- full-device sheets ---------------------------------------------------- */
+.sheet {
+  position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column;
+  background: var(--bg); animation: sheet-in 200ms ease both;
+}
+/* A sheet is read, not glanced at, so it is nearly opaque in every theme that
+   has a room behind it. A paragraph over a photograph is where legibility goes
+   to die, and these carry paragraphs. */
+.ltg[data-theme="dark"] .sheet { background: rgba(10, 13, 19, .92); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); }
+.ltg[data-theme="glass"] .sheet { background: rgba(247, 249, 252, .9); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); }
+.sheet__bar { flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 16px 20px 14px; border-bottom: 1px solid var(--line); }
+.sheet__body { flex: 1; min-height: 0; overflow: hidden; padding: 16px 20px 20px; }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.segmented--sm button { font-size: var(--t-detail); padding: 6px 10px; gap: 6px; }
+/* The wall clock is reference, not pressure. It sits in the same strip as the
+   two countdowns and must not outrank them. */
+/* Baseline alignment was pushing the pair off-center in the pill: the micro
+   label and the numerals have different line boxes, so sharing a baseline is
+   not the same as sharing a center. Center both, and give the label a line
+   height so its box matches its ink. */
+/* The two figures that replaced the countdowns on the bar. Right aligned and
+   set in the metric size, because they are read as numbers rather than as
+   labels with a value attached. */
+.clock--stat { align-items: flex-end; min-width: 92px; }
+.clock--stat b { font-size: var(--t-metric); font-weight: 700; line-height: 1; }
+.clock--stat .micro { line-height: 1; }
+
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--seat-on);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--t-detail); font-weight: 700; color: var(--on-ink);
+}
+
+.clock--quiet { flex-direction: column; gap: 1px; align-items: flex-start; }
+.clock--quiet .micro { line-height: 1; }
+.clock--quiet b { color: var(--ink-2); font-size: var(--t-title); font-weight: 500; line-height: 1; }
+
+/* --- text entry ------------------------------------------------------------
+   Never full width. A field is as wide as the thing it holds, which is the
+   house rule that keeps forms out of the "stretched to fill" shape. */
+.field {
+  font: inherit; font-size: var(--t-body); color: var(--ink);
+  background: var(--surface-soft); border: 1px solid var(--line);
+  border-radius: 10px; padding: 9px 11px; min-height: var(--tap-min);
+  resize: none; width: 100%; transition: border-color 140ms ease, background 140ms ease;
+}
+.field::placeholder { color: var(--ink-3); }
+.field:focus { outline: none; border-color: var(--brand); background: var(--surface); }
+textarea.field { min-height: 62px; line-height: 1.45; }
+.btn[disabled] { opacity: .42; pointer-events: none; }
+
+
+/* --- dark: type that sits on the room rather than on a panel ---------------
+   The legend and the hint have no card under them. A shadow is cheaper and
+   more honest than putting a slab behind three words. */
+.plan-legend {
+  color: var(--legend-ink);
+  text-shadow: var(--legend-shadow);
+  background: var(--legend-bg);
+  backdrop-filter: var(--legend-blur);
+  -webkit-backdrop-filter: var(--legend-blur);
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  flex-shrink: 0;
+}
+/* The legend sits directly on the room in two themes, so its labels take the
+   legend's ink rather than the quiet ink they would use inside a card. */
+.plan-legend .micro, .plan-legend b { color: var(--legend-ink); }
+/* Status chips over a photograph need their own floor, or the wash disappears
+   and the colored text is left sitting on whatever is behind it. */
+.ltg[data-theme="dark"] .pill,
+.ltg[data-theme="dark"] .tag {
+  backdrop-filter: blur(12px) saturate(25%) brightness(0.34);
+  -webkit-backdrop-filter: blur(12px) saturate(25%) brightness(0.34);
+}
+.ltg[data-theme="glass"] .pill,
+.ltg[data-theme="glass"] .tag {
+  backdrop-filter: blur(12px) saturate(40%) brightness(1.55);
+  -webkit-backdrop-filter: blur(12px) saturate(40%) brightness(1.55);
+}
+
+/* --- help tips -------------------------------------------------------------
+   A learning aid for the design team. Switched off, none of this renders, and
+   no component knows it exists. */
+.gloss {
+  position: relative;
+  box-shadow: inset 0 -2px 0 0 var(--high-edge);
+  border-radius: 2px;
+}
+.gloss__i {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px; margin-left: 5px; border-radius: 50%;
+  vertical-align: 1px; flex-shrink: 0; cursor: pointer;
+  font-family: var(--font-display); font-size: var(--t-micro); font-weight: 700; font-style: italic;
+  line-height: 1; border: 0; padding: 0;
+  background: var(--high); color: var(--on-high);
+}
+.gloss__i:hover { filter: brightness(1.12); }
+
+.tiptip {
+  position: absolute; z-index: 60; width: 340px; padding: 15px 17px;
+  border-radius: 14px; opacity: 0; pointer-events: none;
+  transform: translateY(4px); transition: opacity 140ms ease, transform 140ms ease;
+  background: var(--surface-raised); border: 1px solid var(--line-strong);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3);
+}
+/* Nearly opaque: this one is being read, not glanced at, and the room behind
+   the glass competes with a paragraph in a way it does not with a figure. */
+.ltg[data-theme="dark"] .tiptip { background: rgba(21, 19, 27, 0.97); }
+.ltg[data-theme="simple"] .tiptip,
+.ltg[data-theme="square"] .tiptip,
+.ltg[data-theme="glass"] .tiptip { background: #fff; }
+.tiptip[data-open="true"] { opacity: 1; pointer-events: auto; transform: none; }
+.tiptip__term {
+  font-family: var(--font-display); font-size: var(--t-action); font-weight: 700;
+  text-transform: capitalize; margin-bottom: 6px;
+}
+.tiptip__what { font-size: var(--t-micro); line-height: 1.5; color: var(--ink); }
+.tiptip__why {
+  font-size: var(--t-detail); line-height: 1.5; color: var(--ink-2);
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+}
+.tiptip__why b { color: var(--high); }
+
+/* Ranking chips in the players panel. Five choices will not fit a segmented
+   control in a rail this narrow, so they wrap. */
+.rank-chip {
+  border: 1px solid var(--line); background: var(--surface-soft); color: var(--ink-2);
+  font: inherit; font-size: var(--t-micro); font-weight: 600; letter-spacing: 0.03em;
+  padding: 5px 9px; border-radius: var(--r-pill); cursor: pointer; white-space: nowrap;
+}
+.rank-chip[aria-pressed="true"] {
+  background: var(--ink); border-color: var(--ink); color: var(--on-ink);
+}
+
+/* Six names with two figures each, read down the column rather than scanned.
+   A hairline between them does what the gap was failing to do, and it costs
+   nothing on a surface this quiet. */
+.player-list > .row + .row { border-top-color: var(--line); border-radius: 0; }
+.player-list > .row:hover { border-radius: var(--r-md); }
+
+/* Position keys on the override panel. Seat numbers, at key size, because the
+   supervisor is matching them against the felt in front of them. */
+.seat-key {
+  width: 46px; height: 46px; border-radius: var(--r-md);
+  border: 1px solid var(--line-strong); background: var(--surface);
+  font: inherit; font-size: var(--t-action); font-weight: 700; color: var(--ink);
+  cursor: pointer;
+}
+.seat-key[aria-pressed="true"] { background: var(--seat-on); border-color: var(--seat-on); color: var(--on-ink); }
+.seat-key[disabled] { opacity: 0.34; cursor: default; }
+
+/* A section label that sits on the pane rather than inside a card. In the two
+   themes with a room behind the pane it needs a floor, for the same reason the
+   floor legend does: small type over a photograph has nothing to sit against. */
+.section-head {
+  background: var(--legend-bg);
+  backdrop-filter: var(--legend-blur);
+  -webkit-backdrop-filter: var(--legend-blur);
+  border-radius: var(--r-sm);
+  padding: 5px 9px;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+/* The player record rises from the bottom edge and goes back down the way it
+   came. Mount and unmount are not symmetrical in a re-render-everything model,
+   so the exit is driven by a data attribute while the element is still there,
+   and the store is told once the animation has run. */
+.sheet--rise { animation: sheet-rise 260ms cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+.sheet--rise[data-closing="true"] { animation: sheet-fall 200ms cubic-bezier(0.55, 0, 0.78, 0.2) both; }
+@keyframes sheet-rise { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheet-fall { from { transform: none; } to { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .sheet--rise, .sheet--rise[data-closing="true"] { animation: none; }
+}
+
+/* --- B&W ------------------------------------------------------------------
+   The dark bar over a light body is the theme's whole idea, and it is the one
+   place in the product where a region needs its own ink. Rather than teach
+   every component in the bar about it, the bar redefines the tokens for its
+   own subtree and everything inside follows without knowing why.
+   -------------------------------------------------------------------------- */
+.ltg[data-theme="bw"] .bar,
+.ltg[data-theme="studio"] .bar,
+.ltg[data-theme="rouge"] .bar,
+.ltg[data-theme="felt"] .bar {
+  --ink: #ffffff;
+  --ink-2: #dedee3;
+  --ink-3: #acacb3;
+  --line: rgba(255, 255, 255, 0.13);
+  --line-strong: rgba(255, 255, 255, 0.2);
+  --surface-soft: rgba(255, 255, 255, 0.08);
+  --surface-sunken: rgba(255, 255, 255, 0.07);
+  --seg-bg: transparent;
+  --seg-edge: transparent;
+  --seg-on: rgba(255, 255, 255, 0.14);
+  --shadow-raised: none;
+  /* A filled control in the bar prints dark, and the severity inks lighten:
+     these were tuned for a light page and the bar is not one. */
+  --on-ink: #14161c;
+  --critical-ink: #ff93a0;
+  --high-ink: #f2c261;
+  --ok-ink: #5fd79b;
+  --critical-wash: rgba(255, 147, 160, 0.16);
+  --critical-edge: rgba(255, 147, 160, 0.4);
+  --high-wash: rgba(242, 194, 97, 0.16);
+  --high-edge: rgba(242, 194, 97, 0.38);
+  --ok-wash: rgba(95, 215, 155, 0.16);
+  --ok-edge: rgba(95, 215, 155, 0.34);
+  color: #ffffff;
+  border-bottom-color: transparent;
+}
+/* The clocks lose their boxes: on a dark bar a label above a value is enough
+   separation, and five outlined chips in a row is a lot of furniture. */
+.ltg[data-theme="bw"] .bar .clock,
+.ltg[data-theme="studio"] .bar .clock,
+.ltg[data-theme="rouge"] .bar .clock,
+.ltg[data-theme="felt"] .bar .clock {
+  background: transparent;
+  border-color: transparent;
+  padding: 0 6px;
+}
+/* The wordmark plate stays white, since the mark is dark artwork. */
+.ltg[data-theme="bw"] .bar .mark,
+.ltg[data-theme="studio"] .bar .mark,
+.ltg[data-theme="rouge"] .bar .mark,
+.ltg[data-theme="felt"] .bar .mark { background: #ffffff; }
+/* Outlined rather than filled, so it reads as a person and not as a status. */
+.ltg[data-theme="bw"] .bar .avatar,
+.ltg[data-theme="studio"] .bar .avatar,
+.ltg[data-theme="rouge"] .bar .avatar,
+.ltg[data-theme="felt"] .bar .avatar {
+  background: transparent;
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+}
+
+/* Cards separate by cast rather than by edge, which is what keeps a white-on-
+   white theme from reading as a wireframe. A card with a critical alert takes
+   a bar across its top edge instead of a ring around the whole thing: at six
+   cards the ring was the loudest object on the screen. */
+.ltg[data-theme="bw"] .pod__card { position: relative; overflow: hidden; }
+.ltg[data-theme="bw"] .card--critical {
+  border-color: var(--line);
+  box-shadow: var(--shadow-card);
+}
+.ltg[data-theme="bw"] .card--critical::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0; height: 3px;
+  background: var(--critical);
+}
+
+/* --- turning the floor over -------------------------------------------------
+   Floor and Performance are the same six pods in the same six places, so the
+   switch between them is staged as one object being turned rather than one
+   screen replacing another.
+
+   Two halves, because a full re-render happens in between: the cards animate
+   away carrying the old content, the state changes while they are edge on, and
+   the new cards animate back. Both halves are animations rather than
+   transitions, since a transition needs a start value on an element that was
+   already in the document, and after a rebuild nothing was.
+
+   The stagger is small on purpose. This is a view a supervisor switches many
+   times in a shift, and anything statelier than this stops reading as
+   responsive by about the tenth time.
+   -------------------------------------------------------------------------- */
+.pane--content[data-flip] .plan { perspective: 1600px; }
+.pane--content[data-flip] .pod__card { transform-origin: 50% 50%; backface-visibility: hidden; }
+
+.pane--content[data-flip="out"] .pod__card { animation: pod-turn-out 130ms cubic-bezier(.4, 0, 1, 1) forwards; }
+.pane--content[data-flip="in"]  .pod__card { animation: pod-turn-in 190ms cubic-bezier(0, 0, .2, 1) both; }
+
+.pane--content[data-flip] .pod:nth-child(2) .pod__card { animation-delay: 26ms; }
+.pane--content[data-flip] .pod:nth-child(3) .pod__card { animation-delay: 52ms; }
+.pane--content[data-flip] .pod:nth-child(4) .pod__card { animation-delay: 78ms; }
+.pane--content[data-flip] .pod:nth-child(5) .pod__card { animation-delay: 104ms; }
+.pane--content[data-flip] .pod:nth-child(6) .pod__card { animation-delay: 130ms; }
+
+@keyframes pod-turn-out {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(84deg); }
+}
+@keyframes pod-turn-in {
+  from { transform: rotateY(-84deg); }
+  to   { transform: rotateY(0deg); }
+}
+
+/* The section panel rides over the alert rail rather than replacing it, so it
+   is a layer of its own for the length of the switch, opaque enough that the
+   rail does not read through it while it travels. */
+.drawer {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; flex-direction: column;
+  /* The flyout tokens, because this is the same problem: a panel that travels
+     across content and has to stay readable over whatever it happens to be
+     covering. A translucent surface lets the alert tree ghost through it for
+     the whole trip, which is worse than either state it sits between. */
+  background: linear-gradient(var(--flyout-bg), var(--flyout-bg)), var(--bg);
+  box-shadow: var(--flyout-shadow);
+  border-left: 1px solid var(--line);
+  will-change: transform;
+}
+.drawer[data-slide="in"]  { animation: drawer-in 230ms cubic-bezier(.2, .7, .3, 1) both; }
+.drawer[data-slide="out"] { animation: drawer-out 230ms cubic-bezier(.4, 0, .7, .4) both; }
+
+@keyframes drawer-in  { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes drawer-out { from { transform: translateX(0); } to { transform: translateX(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pane--content[data-flip] .pod__card,
+  .drawer { animation: none !important; }
+}
+
+/* --- Studio ----------------------------------------------------------------
+   One inverted object in the rail. The section totals become a black card,
+   which is the only place in this theme where the page goes dark below the
+   bar, so it reads as the summary without needing a heading to say so.
+   -------------------------------------------------------------------------- */
+.ltg[data-theme="studio"] .panel-figures {
+  --ink: #ffffff;
+  --ink-2: #e2e2e4;
+  --ink-3: #a9a9af;
+  --line: rgba(255, 255, 255, 0.14);
+  /* Severity ink is lightened for the dark card. The house result is the only
+     colored figure in here and it has to stay legible without shouting. */
+  --critical-ink: #ff9aa4;
+  --ok-ink: #5fd79b;
+  --on-ink: #0d0d10;
+  background: #0d0d10;
+  color: #ffffff;
+  border-radius: var(--r-lg);
+  margin: 0 14px 12px;
+  padding: 14px 15px;
+}
+
+/* --- Ledger ----------------------------------------------------------------
+   The rail inverts to solid black and redefines its own ink for its subtree,
+   so the alert tree, the player list and the drawer all follow. --bg goes
+   with them: several components use it as a foreground against --ink, and
+   leaving it white would put white text on white inside a black rail.
+   -------------------------------------------------------------------------- */
+.ltg[data-theme="ledger"] .pane--alerts {
+  --bg: #0a0a0a;
+  --surface: #0a0a0a;
+  --surface-raised: #151515;
+  --surface-soft: #171717;
+  --surface-sunken: #121212;
+  --ink: #ffffff;
+  --ink-2: #e0e0e0;
+  --ink-3: #b0b0b0;
+  --line: rgba(255, 255, 255, 0.16);
+  --line-strong: rgba(255, 255, 255, 0.26);
+  --critical-ink: #ff8f9c;
+  --high-ink: #f0c25c;
+  --ok-ink: #5fd79b;
+  --critical-wash: rgba(200, 16, 46, 0.22);
+  --critical-edge: rgba(255, 143, 156, 0.4);
+  --high-wash: rgba(196, 138, 16, 0.2);
+  --high-edge: rgba(240, 194, 92, 0.36);
+  --ok-wash: rgba(21, 128, 61, 0.2);
+  --ok-edge: rgba(95, 215, 155, 0.34);
+  --on-accent: #ffffff;
+  --on-high: #140e00;
+  --on-ink: #0a0a0a;
+  --flyout-bg: #0a0a0a;
+  /* Set here rather than through --rail-bg, because the wallpaper blocks own
+     those tokens and a black rail is not negotiable in this theme. */
+  background: #0a0a0a;
+  color: #ffffff;
+  border-left: 1px solid var(--line-strong);
+}
+.ltg[data-theme="ledger"] .panel-figures {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+/* A printed sheet sets its headings in caps, and here it also keeps the pod
+   names from needing a weight they cannot have on a hairline card. */
+.ltg[data-theme="ledger"] .pod__card > div:first-child .display,
+.ltg[data-theme="ledger"] .bar .crumb-link,
+.ltg[data-theme="ledger"] .bar .bar__title {
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+/* An alerting pod is named in red rather than ringed, because a ring needs a
+   radius and a shadow and this theme has neither. */
+.ltg[data-theme="ledger"] .card--critical { box-shadow: none; border-color: var(--critical); }
+.ltg[data-theme="ledger"] .card--critical > div:first-child .display { color: var(--critical-ink); }
+.ltg[data-theme="ledger"] .bar { border-bottom: 1px solid var(--line-strong); }
+.ltg[data-theme="ledger"] .card { border: 1px solid var(--line); }
+
+/* --- Rouge -----------------------------------------------------------------
+   The chrome floats. The bar is a pill inset from the edges rather than a
+   band across the top, and the ground is a blush wash rather than a flat
+   neutral. The crimson summary card is the warm counterweight to it.
+   -------------------------------------------------------------------------- */
+.ltg[data-theme="rouge"] {
+  background:
+    radial-gradient(120% 70% at 50% -10%, #fdf3f1 0%, rgba(253, 243, 241, 0) 60%),
+    linear-gradient(168deg, #f9efed 0%, #f5e6e4 55%, #f1dedc 100%);
+}
+.ltg[data-theme="rouge"] .bar {
+  margin: 10px 12px 0;
+  border-radius: var(--r-xl);
+  border-bottom: none;
+  box-shadow: 0 6px 22px rgba(60, 30, 34, 0.18);
+}
+.ltg[data-theme="rouge"] .panel-figures {
+  --ink: #ffffff;
+  --ink-2: #f7e4e7;
+  --ink-3: #ecccd1;
+  --line: rgba(255, 255, 255, 0.18);
+  /* Nothing severity-colored inside: the card is already red, so a red figure
+     in it would be decoration reading as a signal. */
+  --critical-ink: #ffffff;
+  --ok-ink: #ffffff;
+  --on-ink: #8e1626;
+  background: linear-gradient(158deg, #b31f33, #8e1626);
+  color: #ffffff;
+  border-radius: var(--r-lg);
+  margin: 0 14px 12px;
+  padding: 15px 16px;
+  box-shadow: 0 8px 22px rgba(120, 20, 36, 0.24);
+}
+.ltg[data-theme="rouge"] .card--critical {
+  border-color: var(--critical);
+  box-shadow: var(--shadow-card), 0 0 0 1px var(--critical);
+}
+
+/* --- Felt ------------------------------------------------------------------
+   Baize, with two hairline gradients standing in for the weave. They are near
+   the limit of visibility on purpose: the job is to stop a large dark area
+   reading as a void, not to be noticed.
+   -------------------------------------------------------------------------- */
+.ltg[data-theme="felt"] {
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.016) 0 2px, rgba(0, 0, 0, 0.016) 2px 4px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.012) 0 2px, rgba(0, 0, 0, 0.012) 2px 4px),
+    radial-gradient(130% 80% at 50% -6%, #1b4733 0%, rgba(27, 71, 51, 0) 62%),
+    linear-gradient(172deg, #164030 0%, #113526 58%, #0c2a1e 100%);
+}
+/* The light top edge is what makes a card read as lifted rather than pasted.
+   It goes only on things that are genuinely above the surface. */
+/* The light top edge, on the things that are genuinely raised off the baize. */
+.ltg[data-theme="felt"] .pane--content .card {
+  border-color: rgba(255, 255, 255, 0.5);
+  border-top-color: rgba(255, 255, 255, 0.92);
+}
+
+/* Paper.
+   The ink is scoped by surface, not by region. The content pane is baize at
+   the floor and a dark recess when it narrows, so it keeps the light ink
+   along with the controls that sit directly on it: tabs, segmented switches,
+   section headings. What takes dark ink is the light surfaces themselves,
+   which is to say the cards and the rows, wherever they appear.
+   The rail is excluded on purpose. It is a recess cut into the surface, not
+   paper laid on it. */
+.ltg[data-theme="felt"] .pane--content .card,
+.ltg[data-theme="felt"] .pane--content .row,
+.ltg[data-theme="felt"] .sheet,
+.ltg[data-theme="felt"] .flyout,
+.ltg[data-theme="felt"] .drawer {
+  --ink: #17140f;
+  --ink-2: #44403a;
+  --ink-3: #57524b;
+  --critical-ink: #981425;
+  --high-ink: #6d4c06;
+  --ok-ink: #0d5e39;
+  --line: #e0dcd0;
+  --line-strong: #c7c2b2;
+  --on-ink: #fbfaf6;
+  color: #17140f;
+}
+
+
+/* The rail is cut into the surface instead of laid on it, so it takes an
+   inner shadow and no border. This is the one recessed thing in the product,
+   and the alert tree is the right object for it: a well the floor drains into.
+   The ink inside flips, because the recess is darker than the baize. */
+.ltg[data-theme="felt"] .pane--alerts {
+  --surface: rgba(255, 255, 255, 0.07);
+  --surface-raised: rgba(255, 255, 255, 0.1);
+  --surface-soft: rgba(255, 255, 255, 0.08);
+  --surface-sunken: rgba(0, 0, 0, 0.16);
+  --ink: #f2f6f3;
+  --ink-2: #dce3de;
+  --ink-3: #adb6b0;
+  --line: rgba(255, 255, 255, 0.14);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --bg: #0a2619;
+  --critical-ink: #ffd2d8;
+  --high-ink: #f7dca2;
+  --ok-ink: #9eeac4;
+  --critical-wash: rgba(120, 16, 30, 0.55);
+  --critical-edge: rgba(255, 149, 161, 0.4);
+  --high-wash: rgba(110, 76, 8, 0.55);
+  --high-edge: rgba(243, 199, 104, 0.36);
+  --ok-wash: rgba(10, 74, 45, 0.55);
+  --ok-edge: rgba(99, 220, 160, 0.34);
+  --on-high: #17120a;
+  --on-ink: #0a2619;
+  --flyout-bg: #0d2e20;
+  /* Same reason as Ledger: the recess has to be darker than the baize no
+     matter which wallpaper is showing, so it does not go through --rail-bg. */
+  background: rgba(4, 20, 13, 0.46);
+  color: #f2f6f3;
+  border-left: none;
+  box-shadow:
+    inset 7px 0 10px -7px rgba(0, 0, 0, 0.75),
+    inset 0 7px 10px -7px rgba(0, 0, 0, 0.6),
+    inset 0 -7px 10px -7px rgba(0, 0, 0, 0.6);
+}
+.ltg[data-theme="felt"] .panel-figures {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+  margin-bottom: 10px;
+}
+
+/* A blocked override tile is dimmed, not hidden: it still has to teach that
+   the Primary owns the shoe. Opacity does that by fading the tile toward
+   whatever is behind it, which works on a light page and inverts on a dark
+   one, so Felt dims with its own muted surface instead. */
+.card--blocked { opacity: 0.55; }
+.ltg[data-theme="felt"] .card--blocked {
+  opacity: 1;
+  background: #ece8dd;
+  border-color: #d8d2c3;
+  box-shadow: none;
+  --ink: #4a463f;
+  --ink-2: #5b564e;
+  --ink-3: #5f5a52;
+}
+
+/* The pod switcher pane is a list of cards, so in Felt it is paper rather
+   than baize: the rows inside it are light and the ink is already dark. */
+.ltg[data-theme="felt"] .pane--content[data-narrow="true"] {
+  background: #f6f4ed;
+}
+.ltg[data-theme="felt"] .pane--content[data-narrow="true"] {
+  --ink: #17140f;
+  --ink-2: #44403a;
+  --ink-3: #57524b;
+  --critical-ink: #981425;
+  --high-ink: #6d4c06;
+  --ok-ink: #0d5e39;
+  --line: #e0dcd0;
+  --line-strong: #c7c2b2;
+  --on-ink: #fbfaf6;
+  color: #17140f;
+}
+
+/* Rouge is the only theme whose selected segment is a filled brand color
+   rather than a raised neutral, so it is the only one where the label cannot
+   be the page ink. */
+.ltg[data-theme="rouge"] .segmented button[aria-pressed="true"] {
+  color: var(--on-accent);
+}
+
+/* ===========================================================================
+   Review round: Todd's feedback (KPI strip, Actions vs Alerts, table peek,
+   pod-level task tabs, Open and Closed players).
+   =========================================================================== */
+
+/* KPI strip: one grouped control in the bar, four figures at one weight. */
+.kpi-strip {
+  display: flex; align-items: stretch; height: 46px; flex-shrink: 0;
+  border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface-soft);
+  overflow: hidden;
+}
+.kpi { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 13px; min-width: 74px; }
+.kpi + .kpi { border-left: 1px solid var(--line); }
+.kpi__label { font-size: var(--t-micro); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; line-height: 1; }
+.kpi__value { font-family: var(--font-display); font-size: var(--t-title); font-weight: 700; line-height: 1; white-space: nowrap; }
+
+.segmented--bar button { padding: 0 14px; }
+.count-badge[data-kind="alerts"] { background: var(--high); color: var(--on-high); }
+.count-badge--quiet { background: var(--surface-sunken); color: var(--ink-2); }
+.segmented[data-dim="true"] { opacity: 0.55; }
+.segmented .dot { width: 7px; height: 7px; }
+
+/* Rail: Actions heading, then Alerts heading. */
+.rail-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 2px; flex-shrink: 0; }
+.rail-head .display { font-size: var(--t-title); font-weight: 600; }
+.rail-head .count-badge { min-width: 24px; height: 24px; font-size: var(--t-body); }
+.rail-head[data-kind="alert"] .count-badge { background: var(--high); color: var(--on-high); }
+.rail-head .count-badge[data-zero="true"] { background: var(--surface-soft); color: var(--ink-3); }
+.rail-empty { padding: 4px 10px 6px; font-size: var(--t-detail); color: var(--ink-3); flex-shrink: 0; }
+.rail-more {
+  align-self: flex-start; margin: 2px 6px; border: 1px solid var(--line); background: var(--surface-soft);
+  color: var(--ink-2); border-radius: var(--r-pill); height: 34px; padding: 0 14px; font: inherit;
+  font-size: var(--t-detail); font-weight: 600; cursor: pointer; flex-shrink: 0;
+}
+.row--mini { min-height: 54px; flex-shrink: 0; }
+.row--mini[data-kind="action"] { background: var(--critical-wash); border-color: var(--critical-edge); }
+
+/* Pod-level task tabs: seven across, slightly tighter than the table set. */
+.tabs--pod button { padding: 0 15px; font-size: var(--t-body); }
+
+/* Table peek. Floats over the device, never inside the layout. */
+.peek {
+  position: absolute; z-index: 40; width: 270px; padding: 13px 14px 11px; pointer-events: none;
+  border-radius: var(--r-lg); background: var(--surface-raised); border: 1px solid var(--line-strong);
+  box-shadow: 0 18px 40px rgba(10, 14, 22, 0.28);
+  backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%);
+  animation: peek-in 120ms ease-out;
+}
+@keyframes peek-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .peek { animation: none; } }
+.peek__head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.peek__head .display { font-size: var(--t-title); font-weight: 700; }
+.peek__head span:last-child { font-size: var(--t-detail); color: var(--ink-3); }
+.peek__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px 10px; }
+.peek__fig { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.peek__fig b { font-size: var(--t-action); font-weight: 700; white-space: nowrap; }
+.peek__foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); font-size: var(--t-detail); color: var(--ink-2); }
+
+.alert-card__where {
+  width: 150px; flex-shrink: 0; text-align: left; border: 0; background: none; font: inherit; color: inherit;
+  padding: 0; cursor: pointer; min-width: 0;
+}
+.tree-scroll { scrollbar-width: thin; }
+.peek { background: #ffffff; }
+.ltg[data-theme="dark"] .peek { background: #1c1f27; }
+
+/* ===========================================================================
+   Table-based Mobile Manager: overview grid, tiles, opened tile, rail.
+   =========================================================================== */
+
+/* Panes: the overview takes the room; the rail is a fixed 312px. */
+.pane--tables { width: calc(100% - 312px); padding: 12px 14px 14px; }
+.pane--rail { left: calc(100% - 312px); width: 312px; }
+
+/* KPI strip (shared with the pod prototype). */
+.kpi-strip { display: flex; align-items: stretch; height: 46px; flex-shrink: 0; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface-soft); overflow: hidden; }
+.kpi { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 13px; min-width: 74px; }
+.kpi + .kpi { border-left: 1px solid var(--line); }
+.kpi__label { font-size: var(--t-micro); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; line-height: 1; }
+.kpi__value { font-family: var(--font-display); font-size: var(--t-title); font-weight: 700; line-height: 1; white-space: nowrap; }
+
+.count-badge[data-kind="alert"], .count-badge--alert { background: var(--high); color: var(--on-high); }
+.count-badge--quiet { background: var(--surface-sunken); color: var(--ink-2); }
+
+.table-stepper { display: flex; align-items: center; gap: 6px; }
+
+/* --- overview header ------------------------------------------------------ */
+.ov-head { display: flex; align-items: center; gap: 12px; flex-shrink: 0; height: 40px; font-size: var(--t-micro); color: var(--ink-2); }
+.pager button { padding: 0 14px; font-size: var(--t-body); }
+.pager .count-badge { margin-left: 2px; }
+
+/* --- the grid --------------------------------------------------------------
+   Four by three, every cell placed explicitly so an opened tile can sit over
+   its neighbors without anything reflowing underneath it. */
+.tile-grid {
+  position: relative; flex: 1; min-height: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px;
+}
+.tile {
+  position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 11px 10px; border-radius: var(--r-lg); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+.tile:active { transform: scale(0.985); }
+.tile[data-action="true"] { border-color: var(--critical); box-shadow: 0 0 0 3px var(--critical-wash), var(--shadow-card); }
+.tile[data-dead="true"] .tile__table { opacity: 0.45; }
+.tile-grid[data-open="true"] .tile:not([data-open="true"]) { opacity: 0.5; }
+
+.tile__head { display: flex; align-items: center; gap: 7px; min-width: 0; height: 24px; }
+.tile__name { font-size: var(--t-action); font-weight: 700; letter-spacing: -0.01em; }
+.tile__dealer { font-size: var(--t-micro); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tile__status { display: inline-flex; align-items: center; gap: 5px; font-size: var(--t-micro); font-weight: 600; white-space: nowrap; color: var(--ink-2); }
+.tile__status .dot { width: 7px; height: 7px; background: var(--ok); }
+.tile__status[data-tone="critical"] { color: var(--critical-ink); }
+.tile__status[data-tone="critical"] .dot { background: var(--critical); }
+.tile__status[data-tone="high"] { color: var(--high-ink); }
+.tile__status[data-tone="high"] .dot { background: var(--high); }
+.tile__status[data-tone="quiet"] .dot { background: var(--ink-3); }
+
+.tile__table { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+.tile__hand { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.06em; color: #fff; }
+.tile__table .felt { display: flex; align-items: center; justify-content: center; }
+
+.tile__figs { display: flex; justify-content: space-between; align-items: flex-end; height: 38px; flex-shrink: 0; }
+.tile__figs > span { display: flex; flex-direction: column; gap: 2px; }
+.tile__figs b { font-family: var(--font-display); font-size: var(--t-title); font-weight: 700; line-height: 1; }
+
+.tile__action {
+  display: flex; align-items: center; gap: 8px; height: 38px; flex-shrink: 0; padding: 0 4px 0 10px;
+  border-radius: var(--r-md); background: var(--critical-wash); border: 1px solid var(--critical-edge);
+}
+.tile__action-title { display: block; font-size: var(--t-detail); font-weight: 700; color: var(--critical-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile__action-sub { display: block; font-size: var(--t-micro); color: var(--ink-2); }
+.tile__action-btn { height: 30px; padding: 0 10px; font-size: var(--t-detail); background: var(--critical); border-color: var(--critical); color: var(--on-accent); }
+
+.tile__bar { display: grid; grid-template-columns: 1fr 1.35fr 1fr; gap: 5px; flex-shrink: 0; }
+.tile__quick {
+  height: 36px; display: flex; align-items: center; justify-content: center; gap: 5px;
+  border-radius: 9px; border: 1px solid var(--line-strong); background: var(--surface-soft);
+  font: inherit; font-size: var(--t-micro); font-weight: 600; color: var(--ink); cursor: pointer; padding: 0 4px; min-width: 0;
+}
+.tile__quick span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile__quick:disabled { opacity: 0.4; cursor: default; }
+.tile[data-scanning="true"] .tile__quick:first-child svg { animation: ltg-spin 1s linear infinite; }
+
+/* --- opened tile ---------------------------------------------------------- */
+.grid-scrim { grid-column: 1 / -1; grid-row: 1 / -1; z-index: 2; border: 0; background: transparent; cursor: default; }
+.tile-xp {
+  z-index: 3; min-width: 0; min-height: 0; display: flex; border-radius: var(--r-xl);
+  background: var(--flyout-bg); border: 1px solid var(--line-strong);
+  box-shadow: 0 24px 60px rgba(10, 14, 22, 0.32);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  animation: xp-in 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.tile-xp[data-from="00"] { transform-origin: top left; }
+.tile-xp[data-from="10"] { transform-origin: top right; }
+.tile-xp[data-from="01"] { transform-origin: bottom left; }
+.tile-xp[data-from="11"] { transform-origin: bottom right; }
+@keyframes xp-in { from { opacity: 0; transform: scale(0.55); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tile-xp { animation: none; } }
+
+.flyout--xp { width: 420px; }
+.flyout--xp .xp, .tile-xp .xp { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tile-xp .xp { padding: 14px 16px 14px; }
+
+.xp__head { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-bottom: 12px; }
+.xp__name { font-size: var(--t-metric); font-weight: 700; line-height: 1.1; }
+.xp__sub { font-size: var(--t-detail); color: var(--ink-3); margin-top: 2px; white-space: nowrap; }
+.xp__body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.xp__nav { display: flex; gap: 10px; flex-shrink: 0; }
+
+.xp__figs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; flex-shrink: 0; }
+.xp__fig { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border-radius: var(--r-md); background: var(--surface-soft); border: 1px solid var(--line); }
+.xp__fig b { font-family: var(--font-display); font-size: var(--t-title); font-weight: 700; line-height: 1; white-space: nowrap; }
+
+.xp__action { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 12px; border-radius: var(--r-md); background: var(--critical-wash); border: 1px solid var(--critical-edge); color: var(--critical-ink); flex-shrink: 0; font-size: var(--t-body); }
+.xp__action .btn { background: var(--critical); border-color: var(--critical); color: var(--on-accent); }
+
+.xp__grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 8px; }
+.flyout--xp .xp__grid { grid-template-columns: repeat(2, 1fr); }
+.xp__quick {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; min-height: 0;
+  border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--surface);
+  font: inherit; font-size: var(--t-detail); font-weight: 600; color: var(--ink); cursor: pointer; padding: 6px;
+}
+.xp__quick:disabled { opacity: 0.4; cursor: default; }
+.xp__quick[data-tone="strong"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+
+.xp__amounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-shrink: 0; }
+.xp__amount { text-align: center; font-size: var(--t-title); font-weight: 600; padding: 14px 10px; }
+.xp__big { font-family: var(--font-display); font-size: var(--t-metric); font-weight: 700; flex-shrink: 0; }
+.xp__line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: var(--t-body); flex-shrink: 0; }
+.xp__list { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+.xp__row {
+  display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 12px; border-radius: 9px;
+  background: var(--surface-soft); border: 1px solid var(--line); font: inherit; font-size: var(--t-body); color: inherit; text-align: left; width: 100%;
+}
+button.xp__row { cursor: pointer; }
+.xp__row[data-hot="true"] { background: var(--critical-wash); border-color: var(--critical-edge); }
+.xp__sign { flex-shrink: 0; }
+.xp__tap { width: 100%; }
+
+/* --- rail ---------------------------------------------------------------- */
+.rail { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.rail-tabs button { padding: 0 8px; font-size: var(--t-body); }
+.rail__list { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 10px 12px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; }
+.rail-row { padding: 10px 10px 9px 12px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); flex-shrink: 0; }
+.rail-row[data-kind="action"] { background: var(--critical-wash); border-color: var(--critical-edge); }
+.rail-row__title { font-size: var(--t-body); font-weight: 600; }
+.rail-row[data-kind="action"] .rail-row__title { color: var(--critical-ink); }
+.rail-row__age { font-size: var(--t-detail); font-weight: 600; color: var(--ink-2); }
+.rail-row__where { font-size: var(--t-detail); color: var(--ink-3); white-space: nowrap; }
+.rail-row__btn { height: 34px; padding: 0 12px; font-size: var(--t-detail); }
+.rail-row[data-kind="action"] .rail-row__btn { background: var(--critical); border-color: var(--critical); color: var(--on-accent); }
+.rail-clear { padding: 30px 10px; text-align: center; color: var(--ok-ink); }
+.rail-clear .display { font-size: var(--t-title); font-weight: 600; }
+.rail-empty { padding: 8px 10px; font-size: var(--t-detail); color: var(--ink-3); }
+
+/* --- table dashboard ------------------------------------------------------ */
+.tool-btn {
+  height: var(--tap-min); display: inline-flex; align-items: center; gap: 7px; padding: 0 14px;
+  border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--surface);
+  font: inherit; font-size: var(--t-body); font-weight: 600; color: var(--ink); cursor: pointer;
+}
+.tool-btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.flyout--history { width: 560px; }
+.history-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; scrollbar-width: thin; }
+
+/* --- table peek ----------------------------------------------------------- */
+.peek {
+  position: absolute; z-index: 40; width: 270px; padding: 13px 14px 11px; pointer-events: none;
+  border-radius: var(--r-lg); background: #ffffff; border: 1px solid var(--line-strong);
+  box-shadow: 0 18px 40px rgba(10, 14, 22, 0.28);
+  animation: peek-in 120ms ease-out;
+}
+.ltg[data-theme="dark"] .peek { background: #1c1f27; }
+@keyframes peek-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .peek { animation: none; } }
+.peek__head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.peek__head .display { font-size: var(--t-title); font-weight: 700; }
+.peek__head span:last-child { font-size: var(--t-detail); color: var(--ink-3); }
+.peek__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px 10px; }
+.peek__fig { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.peek__fig b { font-size: var(--t-action); font-weight: 700; white-space: nowrap; }
+.peek__foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); font-size: var(--t-detail); color: var(--ink-2); }
+.area-switch button { white-space: nowrap; }
+/* Quick functions: icon over label, so all three read in full at tile width. */
+.tile__bar { grid-template-columns: repeat(3, 1fr); }
+.tile__quick { height: 44px; flex-direction: column; gap: 2px; font-size: 11px; line-height: 1; }
+.tile__action { height: 44px; }
+.tile__action-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.15; }
+.tile__figs { height: 44px; }
+.area-switch button { width: auto; min-width: 26px; padding: 0 8px; }
+.scrim--light { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(10, 14, 22, 0.14); }
+.tile[data-open="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--ink), var(--shadow-card); z-index: 1; }
+.tile-grid[data-open="true"] .tile[data-open="true"] { opacity: 1; }
+
+/* Felt inks by surface: anything that is paper on the baize takes dark ink.
+   The tile, the opened tile and the peek are paper, like a card. */
+.ltg[data-theme="felt"] .tile,
+.ltg[data-theme="felt"] .tile-xp,
+.ltg[data-theme="felt"] .peek {
+  --ink: #17140f;
+  --ink-2: #44403a;
+  --ink-3: #57524b;
+  --critical-ink: #981425;
+  --high-ink: #6d4c06;
+  --ok-ink: #0d5e39;
+  --line: #e0dcd0;
+  --line-strong: #c7c2b2;
+  --on-ink: #fbfaf6;
+  color: #17140f;
+}
+.ltg[data-theme="felt"] .tile {
+  border-color: rgba(255, 255, 255, 0.5);
+  border-top-color: rgba(255, 255, 255, 0.92);
+}
+.ltg[data-theme="felt"] .tile[data-action="true"] { border-color: var(--critical); }
+.ltg[data-theme="felt"] .tile-xp { background: #fbfaf6; }
+
+/* --- pagination and density ---------------------------------------------- */
+.ov-head { gap: 14px; }
+.ov-range { font-size: var(--t-detail); color: var(--ink-2); white-space: nowrap; }
+.ov-range b { font-family: var(--font-display); font-size: var(--t-body); color: var(--ink); font-variant-numeric: tabular-nums; }
+.pg { display: flex; align-items: center; gap: 3px; }
+.pg__num, .pg__step {
+  position: relative; min-width: 34px; height: 34px; padding: 0 8px; border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent; background: none; color: var(--ink-2);
+  font: inherit; font-size: var(--t-body); font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.pg__step { border-color: var(--seg-edge); background: var(--seg-bg); color: var(--ink); }
+.pg__step:disabled { opacity: 0.35; cursor: default; }
+.pg__num[aria-current="page"] { background: var(--seg-on); color: var(--ink); border-color: var(--seg-edge); box-shadow: var(--shadow-raised); }
+.pg__gap { width: 20px; text-align: center; color: var(--ink-3); }
+.pg__dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--critical); }
+.dens button { gap: 7px; padding: 0 11px; height: 34px; }
+.dens__glyph { display: grid; gap: 1.5px; width: 16px; height: 13px; }
+.dens__glyph span { background: currentColor; border-radius: 1px; opacity: 0.75; }
+.ov-head .plan-legend, .ov-head > div:last-child { flex-shrink: 0; }
+
+/* --- tile flip --------------------------------------------------------------
+   The tile is a wrapper; its two faces carry the card surface and turn on the
+   Y axis. The back holds the figures the hover card used to show. */
+.tile {
+  padding: 0; gap: 0; background: none; border: 0; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none; perspective: 1100px;
+}
+.tile[data-action="true"] { box-shadow: none; }
+.tile__face {
+  position: absolute; inset: 0; display: flex; flex-direction: column; gap: 6px; padding: 10px 11px;
+  border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transition: transform 420ms cubic-bezier(0.45, 0, 0.2, 1);
+}
+.tile__back { transform: rotateY(180deg); cursor: default; }
+.tile[data-flipped="true"] .tile__front { transform: rotateY(-180deg); }
+.tile[data-flipped="true"] .tile__back { transform: rotateY(0deg); }
+@media (prefers-reduced-motion: reduce) { .tile__face { transition: none; } }
+.tile[data-action="true"] .tile__face { border-color: var(--critical); box-shadow: 0 0 0 3px var(--critical-wash), var(--shadow-card); }
+.tile[data-open="true"] .tile__face { border-color: var(--ink); box-shadow: 0 0 0 3px var(--ink), var(--shadow-card); }
+.ltg[data-theme="felt"] .tile { border: 0; }
+.ltg[data-theme="felt"] .tile__face { border-color: rgba(255, 255, 255, 0.5); border-top-color: rgba(255, 255, 255, 0.92); }
+.ltg[data-theme="felt"] .tile[data-action="true"] .tile__face { border-color: var(--critical); }
+
+.tile__flip {
+  width: 32px; height: 32px; margin: -4px -4px -4px 0; border-radius: 9px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); background: var(--surface-soft); color: var(--ink-2); cursor: pointer;
+}
+.tile__flip:active { transform: scale(0.94); }
+
+.tile__bgrid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; gap: 6px; }
+.tile-grid[data-density="4"] .tile__bgrid, .tile-grid[data-density="9"] .tile__bgrid { grid-template-columns: repeat(3, 1fr); }
+.tile__bfig { display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 6px 9px; border-radius: 9px; background: var(--surface-soft); border: 1px solid var(--line); min-width: 0; }
+.tile__bfig b { font-family: var(--font-display); font-size: var(--t-title); font-weight: 700; line-height: 1; white-space: nowrap; }
+.tile-grid[data-density="4"] .tile__bfig b { font-size: var(--t-metric); }
+.tile__bfoot { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-top: 2px; font-size: var(--t-detail); color: var(--ink-2); flex-shrink: 0; }
+
+/* Exception status on the felt, as a pill rather than plain text. */
+.tile__hand[data-tone] { padding: 3px 9px; border-radius: 999px; background: rgba(0, 0, 0, 0.28); }
+.tile__hand[data-tone="critical"] { background: var(--critical); color: #fff; }
+.tile__hand[data-tone="high"] { background: var(--high); color: var(--on-high); }
+.tile[data-dead="true"] .tile__table { opacity: 1; }
+.tile[data-dead="true"] .tile__table .seat, .tile[data-dead="true"] .tile__table > div:first-child { opacity: 0.45; }
+
+/* Opened tile: tighter fill view so it fits a 2-row cell at every density. */
+.tile-xp .xp__amount { padding: 10px; }
+.tile-xp .xp__head { margin-bottom: 10px; }
+.tile-xp .xp__body { gap: 8px; }
+.tile__bgrid { grid-template-columns: repeat(3, 1fr); }
+.tile-grid[data-density="12"] .tile__bfig { padding: 5px 7px; gap: 2px; }
+.tile-grid[data-density="12"] .tile__bfig b { font-size: var(--t-body); }
+.tile-grid[data-density="12"] .tile__bfig .micro { font-size: 10px; letter-spacing: 0.06em; }
+.tile__back { pointer-events: none; }
+.tile[data-flipped="true"] .tile__back { pointer-events: auto; }
+.tile[data-flipped="true"] .tile__front { pointer-events: none; }
+/* The opened tile sits over other tiles, so its glass gets a solid underlay:
+   nothing behind it may show through. */
+.tile-xp { background: linear-gradient(var(--flyout-bg), var(--flyout-bg)), var(--bg); }
+.ltg[data-theme="felt"] .tile-xp { background: #fbfaf6; }
+/* Win is the widest figure (it can carry parentheses), so its column is wider. */
+.tile__bgrid { grid-template-columns: 1.35fr 1fr 1fr; }
+.tile__bfig b { overflow: hidden; text-overflow: clip; }
+/* 12-up: two columns of plain figures, no boxes, so every value fits whole. */
+.tile-grid[data-density="12"] .tile__bgrid { grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+.tile-grid[data-density="12"] .tile__bfig { background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 2px 0; flex-direction: row; align-items: baseline; justify-content: space-between; }
+.tile-grid[data-density="12"] .tile__bfig b { overflow: visible; }
+/* 12-up back: every row the same height, label and value on one centered
+   line, labels never wrap, values right-aligned to a shared edge. */
+.tile-grid[data-density="12"] .tile__bgrid { grid-auto-rows: 1fr; align-content: stretch; gap: 0 12px; }
+.tile-grid[data-density="12"] .tile__bfig { align-items: center; padding: 0; gap: 6px; border-top: 1px solid var(--line); border-bottom: 0; }
+.tile-grid[data-density="12"] .tile__bfig .micro { white-space: nowrap; flex-shrink: 0; line-height: 1; }
+.tile-grid[data-density="12"] .tile__bfig b { min-width: 0; text-align: right; font-size: var(--t-body); line-height: 1; }
+.tile-grid[data-density="12"] .tile__bfoot { border-top: 1px solid var(--line); padding-top: 6px; align-items: center; }
+.tile-grid[data-density="12"] .tile__bgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 10px; }
+.tile-grid[data-density="12"] .tile__bfig .micro { font-size: 9.5px; letter-spacing: 0.05em; }
+.tile-grid[data-density="12"] .tile__bfig b { font-size: 15px; letter-spacing: -0.01em; }
+
+/* --- Actions and Alerts, WDTS taxonomy ------------------------------------ */
+.rail-row__src {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 5px; background: var(--surface-soft); color: var(--ink-2); flex-shrink: 0;
+}
+.rail-row[data-kind="action"] .rail-row__src { background: rgba(0, 0, 0, 0.06); color: var(--critical-ink); }
+.rail-row__ctx { margin-top: 4px; font-size: var(--t-detail); color: var(--ink-2); }
+.rail-row[data-enroute="true"] { background: var(--surface); border-color: var(--critical-edge); border-style: dashed; }
+.rail-row[data-enroute="true"] .rail-row__btn { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+
+.rail-sub { padding: 10px 4px 0; font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); flex-shrink: 0; }
+.activity-row { display: flex; align-items: center; gap: 10px; padding: 7px 6px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.activity-row__tick { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
+.activity-row__title { display: block; font-size: var(--t-detail); font-weight: 600; color: var(--ink); }
+.activity-row__sub { display: block; font-size: var(--t-micro); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.activity-row__age { font-size: var(--t-micro); color: var(--ink-3); }
+
+.sched-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0; }
+.sched { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
+.sched b { font-family: var(--font-display); font-size: var(--t-body); font-weight: 700; }
+.sched[data-due="true"] { background: var(--high-wash); border-color: var(--high-edge); }
+.sched[data-due="true"] b { color: var(--high-ink); }
+
+.tile__action[data-enroute="true"] { background: var(--surface-soft); border-style: dashed; }
+.tile__action[data-enroute="true"] .tile__action-title { color: var(--ink); }
+.tile__action[data-enroute="true"] .tile__action-btn { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.tile__more-actions { font-size: var(--t-micro); font-weight: 700; color: var(--critical-ink); flex-shrink: 0; }
+
+.tile__fill { display: flex; flex-direction: column; justify-content: center; gap: 6px; height: 44px; flex-shrink: 0; padding: 0 10px; border-radius: var(--r-md); background: var(--high-wash); border: 1px solid var(--high-edge); }
+.tile__fill-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.tile__fill-name { font-size: var(--t-detail); font-weight: 700; color: var(--ink); white-space: nowrap; }
+.tile__fill-stage { font-size: var(--t-micro); font-weight: 700; color: var(--high-ink); white-space: nowrap; }
+.tile__fill-steps { display: flex; gap: 4px; }
+.tile__fill-steps span { flex: 1; height: 4px; border-radius: 2px; background: var(--line-strong); }
+.tile__fill-steps span[data-state="done"] { background: var(--ok); }
+.tile__fill-steps span[data-state="now"] { background: var(--high); }
+
+.xp__ctx { display: flex; flex-direction: column; flex-shrink: 0; }
+.xp__reasons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0; }
+.xp__reason { text-align: center; }
+.xp__note { font-size: var(--t-detail); color: var(--ink-2); padding: 8px 10px; border-radius: var(--r-md); background: var(--high-wash); border: 1px solid var(--high-edge); flex-shrink: 0; }
+/* At 12-up the band is narrow: the wait time lives in the rail, not the tile. */
+.tile-grid[data-density="12"] .tile__action-wait { display: none; }
+.tile__action-title { font-size: var(--t-detail); }
+
+/* --- View Table (dealer view) --------------------------------------------- */
+.vt { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; }
+.vt__shared { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; flex-shrink: 0; }
+.vt__sbet { display: flex; flex-direction: column; gap: 3px; padding: 8px 11px; border-radius: var(--r-md); background: var(--surface-soft); border: 1px solid var(--line); }
+.vt__sbet b { font-family: var(--font-display); font-size: var(--t-title); font-weight: 700; }
+.vt__sbet[data-key="B"] b { color: var(--critical-ink); }
+.vt__sbet[data-key="P"] b { color: #2a5bd7; }
+.vt__sbet[data-empty="true"] b { color: var(--ink-3); }
+
+.vt__felt {
+  --on-felt: #fff;
+  flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: 18px 16px 16px; border-radius: 26px 26px 140px 140px / 26px 26px 90px 90px;
+  background: var(--felt-primary); border: 1px solid var(--felt-primary-edge);
+}
+.vt__cards { flex-shrink: 0; }
+.vt__arc { display: flex; justify-content: center; gap: 9px; width: 100%; padding-bottom: 6px; }
+.vt__pos { flex: 1; max-width: 118px; min-width: 0; display: flex; }
+.vt__spot {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 5px; padding: 8px 8px 9px;
+  border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.85); background: #fbfaf6; color: #17140f;
+  font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+.vt__spot[data-open="true"] { outline: 3px solid #fff; outline-offset: 2px; }
+.vt__spot[data-empty="true"] { background: transparent; border: 1.5px dashed rgba(255, 255, 255, 0.4); color: rgba(255, 255, 255, 0.7); box-shadow: none; cursor: default; align-items: center; justify-content: center; }
+.vt__seat { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: #17140f; color: #fff; flex-shrink: 0; }
+.vt__spot[data-empty="true"] .vt__seat { background: rgba(255, 255, 255, 0.18); }
+.vt__name { font-size: var(--t-detail); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vt__open { font-size: var(--t-micro); font-weight: 600; }
+.vt__bets { display: flex; flex-direction: column; gap: 2px; }
+.vt__bet { display: flex; align-items: baseline; justify-content: space-between; font-size: var(--t-detail); }
+.vt__bet i { font-style: normal; font-weight: 700; font-size: 11px; color: #57524b; }
+.vt__bet[data-key="B"] b { color: #981425; }
+.vt__bet[data-key="P"] b { color: #1f49b5; }
+.vt__total { border-top: 1px solid #e0dcd0; padding-top: 4px; font-size: var(--t-body); font-weight: 700; text-align: right; }
+.vt__back { display: flex; align-items: center; gap: 8px; }
+.vt__back .micro { color: rgba(255, 255, 255, 0.75); }
+.vt__spot[data-small="true"] { flex: none; width: 92px; flex-direction: row; align-items: center; padding: 5px 7px; gap: 6px; }
+.vt__spot[data-small="true"] .vt__name { display: none; }
+.vt__spot[data-small="true"] .vt__total { border: 0; padding: 0; font-size: var(--t-detail); }
+
+.vt__dd { display: flex; align-items: center; gap: 10px; flex-shrink: 0; padding: 8px 12px; border-radius: var(--r-md); background: var(--surface-soft); border: 1px solid var(--line); }
+.vt__dd-label { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.vt__dd-msg { font-size: var(--t-body); font-weight: 600; }
+.vt__dd-meta { font-size: var(--t-detail); color: var(--ink-2); }
+
+.vt__pop {
+  position: absolute; z-index: 5; right: 18px; top: 74px; width: 300px; display: flex; flex-direction: column; gap: 10px; padding: 14px;
+  border-radius: var(--r-lg); background: #ffffff; color: #17140f; border: 1px solid var(--line-strong);
+  box-shadow: 0 22px 50px rgba(10, 14, 22, 0.3); animation: peek-in 140ms ease-out;
+  --ink: #17140f; --ink-2: #44403a; --ink-3: #57524b; --line: #e0dcd0; --surface-soft: #f3f1ea;
+}
+.ltg[data-theme="dark"] .vt__pop { background: #1c1f27; color: #eef1f5; --ink: #eef1f5; --ink-2: #c9ced6; --ink-3: #9aa3ae; --line: rgba(255,255,255,.12); --surface-soft: rgba(255,255,255,.06); }
+.vt__pop-head { display: flex; align-items: center; gap: 10px; }
+.vt__pop-name { display: block; font-size: var(--t-action); font-weight: 700; }
+.vt__pop-sub { display: block; font-size: var(--t-micro); color: var(--ink-3); }
+.vt__pop-bet { display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.vt__pop-line { display: flex; align-items: baseline; justify-content: space-between; font-size: var(--t-body); }
+.vt__pop-total b { font-size: var(--t-title); }
+.vt__chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.vt__chip { display: inline-flex; align-items: baseline; gap: 4px; padding: 3px 8px; border-radius: 999px; background: var(--surface-soft); border: 1px solid var(--line); font-size: var(--t-micro); }
+.vt__chip b { font-size: var(--t-detail); }
+
+/* --- section picker -------------------------------------------------------- */
+.secpick { position: relative; flex-shrink: 0; margin-left: 6px; }
+.secpick__btn {
+  height: 44px; display: inline-flex; align-items: center; gap: 9px; padding: 0 14px; border-radius: var(--r-md);
+  border: 1px solid var(--line-strong); background: var(--surface-soft); color: var(--ink);
+  font: inherit; font-size: var(--t-action); font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.secpick__sw, .secmenu__sw { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.secmenu__scrim { position: fixed; inset: 0; z-index: 30; border: 0; background: transparent; cursor: default; }
+.secmenu {
+  position: absolute; z-index: 31; left: 0; top: 52px; width: 320px; padding: 8px; display: flex; flex-direction: column; gap: 2px;
+  border-radius: var(--r-lg); background: #ffffff; color: #17140f; border: 1px solid #d5dae0; box-shadow: 0 22px 50px rgba(10, 14, 22, 0.3);
+  animation: peek-in 120ms ease-out;
+  --ink: #17140f; --ink-2: #44403a; --ink-3: #57524b; --line: #e0dcd0;
+}
+.ltg[data-theme="dark"] .secmenu { background: #1c1f27; color: #eef1f5; border-color: rgba(255,255,255,.14); --ink: #eef1f5; --ink-2: #c9ced6; --ink-3: #9aa3ae; --line: rgba(255,255,255,.12); }
+.secmenu__label { padding: 6px 10px 4px; font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.secmenu__item { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 10px; border-radius: 10px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.secmenu__item[aria-checked="true"] { background: rgba(0, 0, 0, 0.05); }
+.secmenu__name { display: block; font-size: var(--t-body); font-weight: 600; }
+.secmenu__sub { display: block; font-size: var(--t-micro); color: var(--ink-3); }
+.secmenu__tick { color: var(--ink); display: flex; }
+.secmenu__all { display: flex; align-items: center; gap: 8px; margin-top: 4px; min-height: 48px; padding: 0 12px; border-radius: 10px; border: 0; border-top: 1px solid var(--line); background: none; color: inherit; font: inherit; font-size: var(--t-body); font-weight: 700; cursor: pointer; }
+
+/* --- floor map ----------------------------------------------------------- */
+.fm { position: relative; flex: 1; min-height: 0; display: flex; }
+.fm__floor {
+  position: relative; flex: 1; border-radius: var(--r-lg); overflow: visible;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 23px, rgba(0, 0, 0, 0.035) 23px 24px),
+    repeating-linear-gradient(90deg, transparent 0 23px, rgba(0, 0, 0, 0.035) 23px 24px),
+    var(--surface-soft);
+  border: 1px solid var(--line);
+}
+.fm__cage { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); padding: 3px 14px; border-radius: 8px 8px 0 0; background: var(--ink-3); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.fm__label { position: absolute; transform: translateX(-50%); font-size: var(--t-micro); font-weight: 700; color: var(--ink-2); white-space: nowrap; pointer-events: none; }
+.fm__label[data-faded="true"] { opacity: 0.3; }
+.fm__t {
+  position: absolute; transform: translate(-50%, -50%); width: 22px; height: 15px; padding: 0;
+  border-radius: 8px 8px 3px 3px; border: 1.5px solid hsl(var(--hue) var(--sat) 36%);
+  background: hsl(var(--hue) var(--sat) 52%); cursor: pointer; transition: opacity 150ms, transform 150ms;
+}
+.fm__t::after { content: ""; position: absolute; inset: -9px -6px; }
+.fm__t[data-none="true"] { background: var(--surface); border: 1.5px dashed var(--ink-3); }
+.fm__t[data-faded="true"] { opacity: 0.22; }
+.fm__t[data-dead="true"] { opacity: 0.45; }
+.fm__t[data-action="true"] { box-shadow: 0 0 0 2.5px var(--surface), 0 0 0 4.5px var(--critical); }
+.fm__t[data-open="true"] { transform: translate(-50%, -50%) scale(1.35); z-index: 2; }
+.fm[data-editing="true"] .fm__t[data-draft="false"] { opacity: 0.35; }
+.fm[data-editing="true"] .fm__t[data-draft="true"] { background: var(--ink); border-color: var(--ink); opacity: 1; }
+.fm[data-big="true"] .fm__t { width: 66px; height: 40px; border-radius: 22px 22px 6px 6px; display: flex; align-items: center; justify-content: center; }
+.fm__name { font-family: var(--font-display); font-size: var(--t-detail); font-weight: 700; color: #fff; }
+.fm[data-big="true"] .fm__t[data-none="true"] .fm__name { color: var(--ink-2); }
+
+.fm__pop {
+  position: absolute; z-index: 6; width: 250px; margin-left: 22px; margin-top: -40px; padding: 12px; display: flex; flex-direction: column; gap: 9px;
+  border-radius: var(--r-lg); background: #ffffff; color: #17140f; border: 1px solid #d5dae0; box-shadow: 0 18px 40px rgba(10, 14, 22, 0.28);
+  animation: peek-in 120ms ease-out;
+  --ink: #17140f; --ink-2: #44403a; --ink-3: #57524b; --line: #e0dcd0; --critical-ink: #981425; --ok-ink: #0d5e39;
+}
+.fm__pop[data-side="left"] { margin-left: -272px; }
+.fm__pop[data-up="true"] { margin-top: -170px; }
+.ltg[data-theme="dark"] .fm__pop { background: #1c1f27; color: #eef1f5; border-color: rgba(255,255,255,.14); --ink: #eef1f5; --ink-2: #c9ced6; --ink-3: #9aa3ae; --line: rgba(255,255,255,.12); --critical-ink: #ff95a1; --ok-ink: #63dca0; }
+.fm__pop-head { display: flex; align-items: flex-start; gap: 8px; }
+.fm__pop-head .icon-btn { width: 34px; height: 34px; }
+.fm__pop-name { display: block; font-family: var(--font-display); font-size: var(--t-title); font-weight: 700; }
+.fm__pop-sub { display: block; font-size: var(--t-micro); color: var(--ink-3); }
+.fm__pop-act { padding: 6px 9px; border-radius: 8px; background: #fbe9eb; color: #981425; font-size: var(--t-detail); font-weight: 700; }
+.fm__pop-figs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.fm__pop-figs > span { display: flex; flex-direction: column; gap: 2px; }
+.fm__pop-figs b { font-size: var(--t-body); font-weight: 700; }
+.fm__pop-btns { display: flex; }
+.fm__pop-btns .btn { flex: 1; height: 42px; }
+
+/* --- all sections -------------------------------------------------------- */
+.pane--full { left: 0; width: 100%; padding: 14px 16px; }
+.secv { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; }
+.secv__map { display: flex; flex-direction: column; gap: 10px; padding: 14px; min-height: 0; }
+.secv__maphead, .secv__listhead { display: flex; align-items: baseline; gap: 12px; flex-shrink: 0; }
+.secv__maphead .display, .secv__listhead .display { font-size: var(--t-title); font-weight: 700; }
+.secv__listhead { align-items: center; }
+.secv__list { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.secv__cards { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 10px; }
+
+.seccard { position: relative; min-height: 0; perspective: 1000px; cursor: pointer; }
+.seccard__face {
+  position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; padding: 12px 13px;
+  border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; transition: transform 420ms cubic-bezier(0.45, 0, 0.2, 1);
+}
+.seccard__back { transform: rotateY(180deg); pointer-events: none; }
+.seccard[data-flipped="true"] .seccard__front { transform: rotateY(-180deg); pointer-events: none; }
+.seccard[data-flipped="true"] .seccard__back { transform: rotateY(0); pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .seccard__face { transition: none; } }
+.seccard[data-focused="true"] .seccard__face { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink), var(--shadow-card); }
+
+.seccard--unassigned { cursor: default; }
+.seccard--unassigned .seccard__face { background: transparent; border-style: dashed; box-shadow: none; }
+.seccard__head { display: flex; align-items: center; gap: 9px; }
+.seccard__sw { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+.seccard__name { display: block; font-family: var(--font-display); font-size: var(--t-action); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seccard__sub { display: block; font-size: var(--t-micro); color: var(--ink-3); }
+.seccard__row { display: flex; gap: 18px; margin-top: auto; }
+.seccard__row > span { display: flex; flex-direction: column-reverse; gap: 2px; }
+.seccard__row b { font-family: var(--font-display); font-size: var(--t-metric); font-weight: 700; line-height: 1; }
+.seccard__btns { display: flex; gap: 6px; }
+.seccard__btns .btn { flex: 1; height: 38px; padding: 0 8px; }
+.seccard__grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.seccard__grid > span { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 6px 9px; border-radius: 9px; background: var(--surface-soft); border: 1px solid var(--line); }
+.seccard__grid b { font-family: var(--font-display); font-size: var(--t-title); font-weight: 700; }
+.seccard[data-focused="true"] .seccard__row { margin-top: 0; }
+
+/* --- section editor ------------------------------------------------------ */
+.sed { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+.sed__head { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.sed__namebox { display: flex; flex-direction: column; gap: 3px; }
+.sed__name {
+  width: 280px; height: 44px; padding: 0 12px; border-radius: var(--r-md); border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--ink); font: inherit; font-family: var(--font-display); font-size: var(--t-title); font-weight: 700;
+}
+.sed__count { display: flex; flex-direction: column; gap: 2px; padding-left: 4px; }
+.sed__count b { font-family: var(--font-display); font-size: var(--t-metric); font-weight: 700; line-height: 1; }
+.sed__changes { display: flex; gap: 18px; padding: 8px 12px; border-radius: var(--r-md); background: var(--high-wash); border: 1px solid var(--high-edge); font-size: var(--t-detail); color: var(--ink); flex-shrink: 0; }
+.sed__cols { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr); gap: 12px; }
+.sed__col { display: flex; flex-direction: column; gap: 10px; padding: 12px; min-height: 0; }
+.sed__colhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-shrink: 0; }
+.sed__colhead .display { font-size: var(--t-title); font-weight: 700; }
+.sed__sources { display: flex; flex-wrap: wrap; gap: 6px; flex-shrink: 0; }
+.sed__sources .chip { height: 36px; font-size: var(--t-detail); }
+.sed__grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: min-content; gap: 6px; align-content: start; scrollbar-width: thin; }
+.sed__chip {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 48px; padding: 4px;
+  border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  font: inherit; font-size: var(--t-body); font-weight: 600; cursor: pointer;
+}
+.sed__chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.sed__from { font-size: 10px; font-weight: 600; color: var(--high-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.sed__chip[aria-pressed="true"] .sed__from { color: inherit; opacity: 0.8; }
+.sed__x { position: absolute; top: 4px; right: 5px; color: var(--ink-3); display: flex; }
+.sed__arrows { display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.sed__arrow {
+  height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  border-radius: var(--r-md); border: 1px solid var(--ink); background: var(--ink); color: var(--on-ink);
+  font: inherit; font-size: var(--t-detail); font-weight: 700; cursor: pointer;
+}
+.sed__arrow:disabled { background: var(--surface-soft); border-color: var(--line); color: var(--ink-3); cursor: default; }
+.sed__mapwrap { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 12px; }
+.sed__mapcard { display: flex; padding: 12px; min-height: 0; }
+.sed__summary { display: flex; flex-direction: column; gap: 8px; padding: 12px; min-height: 0; }
+.sed__chips { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: min-content; gap: 6px; }
+.ov-map { flex: 1; min-height: 0; display: flex; padding: 12px; }
+.ov-map .fm__floor { background: var(--surface-soft); }
+.dens button[aria-label="Floor map"] { gap: 6px; }
+/* A section's own map: one section, so color carries status, not section. */
+.fm[data-big="true"] .fm__t { background: var(--felt-primary); border-color: var(--felt-primary-edge); }
+.fm[data-big="true"] .fm__t[data-action="true"] { background: var(--critical); border-color: var(--critical); box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--critical-edge); }
+.fm[data-big="true"] .fm__t[data-dead="true"] { background: var(--surface); border: 1.5px dashed var(--ink-3); opacity: 1; }
+.fm[data-big="true"] .fm__t[data-dead="true"] .fm__name { color: var(--ink-3); }
+
+/* --- player alerts in the Players tab ------------------------------------ */
+.pa { display: flex; flex-direction: column; gap: 6px; padding: 0 2px 8px; margin-bottom: 4px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.pa__head { padding: 0 2px; }
+.pa__chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.pa__chip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 6px 7px; min-height: 46px; justify-content: center;
+  border-radius: 9px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; text-align: left;
+}
+.pa__chip .micro { font-size: 9.5px; letter-spacing: 0.04em; white-space: nowrap; }
+.pa__chip b { font-family: var(--font-display); font-size: var(--t-body); font-weight: 700; }
+.pa__chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.pa__chip[aria-pressed="true"] .micro { color: inherit; opacity: 0.8; }
+.pa__chip[data-locked="true"] { background: transparent; border-style: dashed; }
+.pa__edit { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line-strong); box-shadow: var(--shadow-card); animation: peek-in 120ms ease-out; }
+.pa__edit-head { display: flex; align-items: flex-start; gap: 8px; }
+.pa__edit-head .icon-btn { width: 34px; height: 34px; }
+.pa__edit-title { display: block; font-size: var(--t-detail); font-weight: 700; }
+.pa__edit-note { display: block; font-size: var(--t-micro); color: var(--ink-3); }
+.pa__stepper { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; }
+.pa__stepper .btn { height: 40px; padding: 0; font-size: var(--t-title); }
+.pa__stepper b { text-align: center; font-family: var(--font-display); font-size: var(--t-metric); font-weight: 700; }
+.pa__presets { display: flex; flex-wrap: wrap; gap: 5px; }
+.pa__presets .chip { height: 32px; padding: 0 10px; font-size: var(--t-detail); }
+.pa__hits { font-size: var(--t-micro); color: var(--ink-2); }
+/* Felt: everything that is paper on the baize takes dark ink. */
+.ltg[data-theme="felt"] .seccard__face,
+.ltg[data-theme="felt"] .tool-btn,
+.ltg[data-theme="felt"] .pa__edit,
+.ltg[data-theme="felt"] .pa__chip,
+.ltg[data-theme="felt"] .rail-row:not([data-kind="action"]) {
+  --ink: #17140f; --ink-2: #44403a; --ink-3: #57524b;
+  --critical-ink: #981425; --high-ink: #6d4c06; --ok-ink: #0d5e39;
+  --line: #e0dcd0; --line-strong: #c7c2b2; --on-ink: #fbfaf6; --surface-soft: #f3f1ea;
+  color: #17140f;
+}
+.ltg[data-theme="felt"] .seccard__face { background: #fbfaf6; }
+.ltg[data-theme="felt"] .seccard--unassigned .seccard__face { background: transparent; --ink: #eef3ef; --ink-3: rgba(238,243,239,.7); color: #eef3ef; }
+.ltg[data-theme="felt"] .tool-btn { background: #fbfaf6; }
+.ltg[data-theme="felt"] .pa__chip, .ltg[data-theme="felt"] .pa__edit { background: #fbfaf6; }
+.ltg[data-theme="felt"] .pa__chip[aria-pressed="true"] { background: #17140f; color: #fbfaf6; }
+.ltg[data-theme="felt"] .pa__chip[data-locked="true"] { background: transparent; color: #eef3ef; --ink-3: rgba(238,243,239,.7); }
+.vt__felt { --on-felt-2: rgba(255, 255, 255, 0.85); }
+/* Felt: the sign-in card is paper on the baize, so it takes dark ink. */
+.ltg[data-theme="felt"] .login__card {
+  --ink: #17140f; --ink-2: #44403a; --ink-3: #57524b;
+  --line: #e0dcd0; --line-strong: #c7c2b2; --on-ink: #fbfaf6;
+  --surface-soft: #f3f1ea; --brand: #981425; --ok: #0d5e39;
+  color: #17140f; background: #fbfaf6;
+}
+.ltg[data-theme="felt"] .login__card .key { color: #17140f; }
+/* Felt: light controls sitting directly on the baize (editor header, arrows,
+   ghost buttons, close buttons) are paper too, so they take dark ink. */
+.ltg[data-theme="felt"] .pane--content .btn--ghost,
+.ltg[data-theme="felt"] .pane--content .icon-btn,
+.ltg[data-theme="felt"] .sed__name,
+.ltg[data-theme="felt"] .sed__arrow {
+  --ink: #17140f; --ink-2: #44403a; --ink-3: #57524b;
+  --line: #e0dcd0; --line-strong: #c7c2b2; --surface: #fbfaf6; --surface-soft: #f3f1ea; --on-ink: #fbfaf6;
+  color: #17140f;
+}
+.ltg[data-theme="felt"] .sed__name { background: #fbfaf6; border-color: #c7c2b2; }
+.ltg[data-theme="felt"] .sed__name::placeholder { color: #8a847b; }
+.ltg[data-theme="felt"] .sed__arrow:not(:disabled) { background: #17140f; border-color: #17140f; color: #fbfaf6; }
+.ltg[data-theme="felt"] .sed__arrow:disabled { background: #f3f1ea; border-color: #e0dcd0; color: #8a847b; opacity: 1; }
+.ltg[data-theme="felt"] .pane--content .btn--ghost { background: #fbfaf6; border-color: #c7c2b2; }
+.ltg[data-theme="felt"] .pane--content .icon-btn { background: #fbfaf6; border-color: #e0dcd0; }
+.sed__grid > .rail-empty, .sed__chips > .rail-empty { grid-column: 1 / -1; }
+.ltg[data-theme="felt"] .login__card .login__go { color: #fbfaf6; }
+
+/* Felt audit fixes ---------------------------------------------------------- */
+/* Sheets sit on the baize: their title bar keeps the light ink; the cards in
+   the body are paper and keep the dark ink. */
+.ltg[data-theme="felt"] .sheet__bar {
+  --ink: #eef3ef; --ink-2: rgba(238, 243, 239, 0.86); --ink-3: rgba(238, 243, 239, 0.72);
+  color: #eef3ef;
+}
+.ltg[data-theme="felt"] .sheet__bar .icon-btn { color: #17140f; }
+.ltg[data-theme="felt"] .sheet__bar .tag { color: #17140f !important; }
+/* Tags printed in a fill color on their own wash need the darker ink. */
+.ltg[data-theme="felt"] .sheet { --brand: #981425; --high: #6a4706; }
+/* Alert rows in the rail are not paper; the rail is a dark recess. */
+.ltg[data-theme="felt"] .pane--rail .rail-row:not([data-kind="action"]) {
+  --ink: #f2f6f3; --ink-2: #dce3de; --ink-3: #b9c2bc;
+  --line: rgba(255, 255, 255, 0.14); --line-strong: rgba(255, 255, 255, 0.24);
+  --surface-soft: rgba(255, 255, 255, 0.08); --on-ink: #0a2619;
+  color: #f2f6f3;
+}
+.ltg[data-theme="felt"] .pane--rail .rail-row:not([data-kind="action"]) .btn--ghost { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.28); color: #f2f6f3; }
+.ltg[data-theme="felt"] .pane--rail .rail-row__where { color: #c9d1cc; }
+
+/* Cross-theme audit fixes ----------------------------------------------------- */
+.fm__cage { background: #57524b; color: #fff; }
+.ltg[data-theme="dark"] .vt__sbet[data-key="P"] b { color: #8fb0ff; }
+.ltg[data-theme="dark"] .tile__hand[data-tone="critical"],
+.ltg[data-theme="dark"] .fm[data-big="true"] .fm__t[data-action="true"]:not([data-dead="true"]) .fm__name { color: #24070c; }
+.ltg[data-theme="rouge"] .tabs button[aria-pressed="true"],
+.ltg[data-theme="rouge"] .pg__num[aria-current="page"] { color: #ffffff; }
+.ltg:not([data-theme="dark"]) .sheet .tag { --high-ink: #5a3e06; }
+
+/* 4-up tile: players where the cards used to be */
+.tile__people { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
+.tile__people--empty { font-size: var(--t-detail); color: var(--ink-3); padding: 6px 2px; }
+.tile__person {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto 66px; align-items: center; gap: 8px; min-height: 34px; padding: 0 8px;
+  border-radius: 9px; border: 1px solid var(--line); background: var(--surface-soft); color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+}
+.tile__pseat { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: var(--ink); color: var(--on-ink); }
+.tile__pname { font-size: var(--t-body); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile__pavg { font-size: var(--t-micro); color: var(--ink-3); }
+.tile__pwin { font-size: var(--t-body); font-weight: 700; text-align: right; color: var(--ink-2); }
+.tile__pwin[data-up="true"] { color: var(--critical-ink); }
