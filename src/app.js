@@ -289,13 +289,7 @@ function page(state) {
       {},
       h("span.page-title", { text: "Mobile Manager · Tables" }),
       h("span.page-sub", { html: "Interaction prototype. Designed for a 10&Prime; tablet in landscape; scaled to fit this window." }),
-      state.signedIn ? h("button.chip", { text: "Sign out", on: { click: () => dispatch({ type: "sign-out" }) } }) : null,
-      h(
-        "button.chip.chip--tips",
-        { "aria-pressed": String(state.helpTips), on: { click: () => dispatch({ type: "help-tips" }) } },
-        h("span.gloss__i", { text: "i", "aria-hidden": "true" }),
-        "Jargon tips"
-      )
+      state.signedIn ? h("button.chip", { text: "Sign out", on: { click: () => dispatch({ type: "sign-out" }) } }) : null
     ),
     h("div.stage", { id: "stage" }, device(state)),
     h("p.page-hint", {}, h("b", { text: lead + ":" }), rest.join(":"))
