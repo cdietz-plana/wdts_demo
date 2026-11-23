@@ -157,3 +157,4 @@
   flex: 1 1 0; min-width: 0 !important; width: auto; padding: 0 6px; box-sizing: border-box;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; justify-content: center;
 }
+.ltg[data-look="c"] .rail-tabs { border-radius: 12px; }
