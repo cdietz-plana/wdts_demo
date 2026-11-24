@@ -158,3 +158,20 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; justify-content: center;
 }
 .ltg[data-look="c"] .rail-tabs { border-radius: 12px; }
+
+/* Todd: maroon panel behind the white cards. */
+.ltg[data-look][data-bg] .pane--alerts { background: #6b1c27; border-left: 0; }
+.ltg[data-look][data-bg] .pane--alerts .rail-row.lr[data-kind="action"],
+.ltg[data-look][data-bg] .pane--alerts .rail-row.lr[data-kind="alert"] { border: 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+.ltg[data-look][data-bg] .pane--alerts .rail-row.lr[data-kind="alert"] { border-left: 5px solid #8a8079; }
+.ltg[data-look][data-bg] .pane--alerts .rail-row.lr[data-acked="true"] { background: #f1ebe2; }
+.ltg[data-look][data-bg] .pane--alerts .rail-tabs { box-shadow: none; }
+.ltg[data-look][data-bg] .pane--alerts .rail-tabs button[aria-pressed="true"] { background: #6b1c27; }
+.ltg[data-look][data-bg] .pane--alerts .rail__list > div > .micro,
+.ltg[data-look][data-bg] .pane--alerts .rail__list > .rail-empty,
+.ltg[data-look][data-bg] .pane--alerts .rail-clear,
+.ltg[data-look][data-bg] .pane--alerts .rail-clear * { color: #f3e6e0; }
+.ltg[data-look][data-bg] .pane--alerts .rail__list { scrollbar-color: rgba(255, 255, 255, 0.35) transparent; }
+.ltg[data-look][data-bg] .pane--alerts .segmented { background: #ffffff; border-radius: 12px; padding: 4px; border: 0; }
+.ltg[data-look][data-bg] .pane--alerts .segmented button { color: #4a3f39; border-radius: 8px; }
+.ltg[data-look][data-bg] .pane--alerts .segmented button[aria-pressed="true"] { background: #6b1c27; color: #ffffff; }
